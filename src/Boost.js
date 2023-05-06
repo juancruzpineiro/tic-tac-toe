@@ -1,8 +1,9 @@
 import React from 'react'
 
-const Boost = () => {
+const Boost = ({onClick}) => {
+  
   return (
-    <div>
+    <div onClick={onClick}>
         <button style={{
           '--bg': '#e74c3c',
           '--text-color': '#fff',

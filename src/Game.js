@@ -88,6 +88,23 @@ function Game() {
     });
   }
 
+  const onButtonClick = () => {
+    const gridS = JSON.stringify(grid);
+    const queryS = "powerUp(" + gridS + "," + numOfColumns + ", RGrids)";
+
+    setWaiting(true);
+    setIsActive(false);
+    pengine.query(queryS, (success, response) => {
+      if (success) {
+        setScore(score + joinResult(path, grid, numOfColumns));
+        setPath([]);
+        animateEffect(response['RGrids']);
+      } else {
+        setWaiting(false);
+      }
+    });
+  }
+
   /**
    * Displays each grid of the sequence as the current grid in 1sec intervals.
    * @param {number[][]} rGrids a sequence of grids.
@@ -114,7 +131,7 @@ function Game() {
           {displayValue}
         </div>
       </div>
-      <Boost/>
+      <Boost onClick={onButtonClick} />
       <Board
         grid={grid}
         numOfColumns={numOfColumns}

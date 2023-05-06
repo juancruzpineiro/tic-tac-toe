@@ -1,6 +1,7 @@
 :- module(proylcc, 
 	[  
-		join/4
+		join/4,
+		powerUp/3
 	]).
 
 
@@ -150,29 +151,108 @@ powerUp(Grid, CantidadColumnas, RGrids):-
 	length(Grid, Size),
 	CantidadFilas is Size/CantidadColumnas,
 
-	%clusters(Grid,CantidadFilas,CantidadColumnas,Grupos,GridEnCero),
-	% calculo(Grid, GridEnCero, Grupos, Resultado),
+	clusters(Grid,CantidadFilas,CantidadColumnas,Grupos),
+	ceros(Grupos, Grid,CantidadColumnas, GridEnCero),
+	calculo(Grupos,Grid,GridEnCero,CantidadColumnas,Nuevo),
 
-	gravedad(Resultado, CantidadColumnas,CantidadFilas,0,Resultado1),
+	gravedad(Nuevo, CantidadColumnas,CantidadFilas,0,Resultado1),
 	rellenar(Resultado1, ResultadoDefinitivo),
 
-	RGrids=[GridEnCero,Resultado,Resultado1,ResultadoDefinitivo].
+	RGrids=[GridEnCero,Nuevo,Resultado1, ResultadoDefinitivo].
+
+ceros([ListaActual|Resto], Grid,CantidadColumnas, GridEnCero):-
+	reemplazarCeros(Grid,CantidadColumnas,ListaActual,GridNuevo),
+	ceros(Resto, GridNuevo,CantidadColumnas,GridEnCero).
+
+ceros([],Grid,_,Grid).
+
+
+calculo([ListaActual|Resto], Grid, GridEnCero , CantidadColumnas, Resultado):-
+	calcularPrimero(Grid, CantidadColumnas, ListaActual, Valor),
+	abajoDerecha(ListaActual, Coordenada),
+	reemplazarValorCoordenada(GridEnCero, CantidadColumnas, Coordenada, Valor, GridNuevo),
+	calculo(Resto, Grid, GridNuevo, CantidadColumnas, Resultado).
+
+calculo([],_,GridEnCero,_,GridEnCero).
+
+
+abajoDerecha([[Fila,Columna]], [Fila,Columna]).
+abajoDerecha([[Fila,Columna]|Resto], Coordenada) :-
+    abajoDerecha(Resto, [Fila2,Columna2]),
+    Fila >= Fila2,
+    Columna >= Columna2,
+    Coordenada = [Fila,Columna].
+abajoDerecha([[Fila,Columna]|Resto], Coordenada) :-
+    abajoDerecha(Resto, [Fila2,Columna2]),
+    (Fila < Fila2 ; Columna < Columna2),
+    Coordenada = [Fila2,Columna2].
+
+
+clusters([],_,_,[]).
+clusters([X|Xs],CantidadFilas, CantidadColumnas, Grupos):-
+	clusters_aux([0,0], [X|Xs],CantidadFilas,CantidadColumnas,[], Grupos1),
+	limpiar_lista(Grupos1, Grupos).
+
+
+filtrar_lista([_], []).
+filtrar_lista([H|T], [H|T]).
+
+limpiar_lista([], []).
+limpiar_lista([[]|T], Resultado) :-
+    limpiar_lista(T, Resultado).
+limpiar_lista([H|T], [H|Resultado]) :-
+    H \= [],
+    limpiar_lista(T, Resultado).
+
+
+clusters_aux([Fila,Columna],[X|Xs],CantidadFilas,CantidadColumnas, Visitados, [Lista2|Resultado]):-
+	not(member([Fila,Columna],Visitados)),
+	Columna<CantidadColumnas,
+	Fila>=0,
+	Fila<CantidadFilas,
+	
+	visitar([Fila,Columna], CantidadFilas,CantidadColumnas,[X|Xs],Visitados,Lista1),
+	append(Visitados,Lista1,Visitados1),
+	eliminar_repetidos(Visitados1, VisitadosNuevo),
+	
+	filtrar_lista(Lista1, Lista2),
+
+	ColumnaSiguiente is Columna+1,
+	clusters_aux([Fila,ColumnaSiguiente],[X|Xs],CantidadFilas,CantidadColumnas,VisitadosNuevo,Resultado).
 
 
 
-eliminar_repetidos([], []).
-eliminar_repetidos([H|T], Resultado) :-
-	member(H, T), !, eliminar_repetidos(T, Resultado).
-eliminar_repetidos([H|T], [H|Resultado]) :-
-	eliminar_repetidos(T, Resultado).
 
-%HAY QUE ACTUALIZAR LA LISTA DE VISITADOS AL SALIR, CON APPEND(VISITADOS, GRUPO)
+
+clusters_aux([Fila,Columna],[X|Xs],CantidadFilas,CantidadColumnas, Visitados, Resultado):-
+	member([Fila,Columna],Visitados),
+	Columna<CantidadColumnas,
+	Fila>=0,
+	Fila<CantidadFilas,
+	
+	ColumnaSiguiente is Columna+1,
+	clusters_aux([Fila,ColumnaSiguiente],[X|Xs],CantidadFilas,CantidadColumnas,Visitados,Resultado).
+
+
+
+clusters_aux([Fila,Columna],[X|Xs],CantidadFilas,CantidadColumnas, Visitados, Resultado):-
+	Columna>=CantidadColumnas,
+	Fila1 is Fila+1,
+	clusters_aux([Fila1,0],[X|Xs],CantidadFilas,CantidadColumnas, Visitados, Resultado).
+
+
+clusters_aux([Fila,_], _, CantidadFilas,_,_, []):-
+	Fila=:=CantidadFilas.
+
+
+
+	
+
+%HAY QUE ACTUALIZAR LA LISTA DE VISITADOS DESDE EL CLIENTE, CON APPEND/3
 visitar([Fila,Columna], CantidadFilas,CantidadColumnas,[X|Xs], Visitados,[[Fila,Columna]|GrupoNuevo]):-
 	puedo_mover([X|Xs], CantidadFilas, CantidadColumnas,Visitados,[Fila,Columna],Lista),
 	
 	visitarAux(Lista,CantidadFilas,CantidadColumnas,[X|Xs], [[Fila,Columna]|Visitados], [],GrupoNuevo).
-
-	
 
 
 
@@ -190,12 +270,9 @@ visitarAux([CoordenadaActual|Resto],CantidadFilas,CantidadColumnas, Grilla,Visit
 
 	visitarAux(Resto,CantidadFilas,CantidadColumnas,Grilla,VisitadosNuevo, GrupoNuevo1, GrupoNuevo).
 
-
-
 visitarAux([CoordenadaActual|Resto],CantidadFilas,CantidadColumnas, Grilla,VisitadosAntes,Grupo,GrupoNuevo):-
 	member(CoordenadaActual, VisitadosAntes),
 	visitarAux(Resto,CantidadFilas,CantidadColumnas, Grilla,VisitadosAntes,Grupo,GrupoNuevo).
-
 
 puedo_mover([H|T], CantidadFilas,CantidadColumnas,Visitados,[Fila,Columna],Resultado):-
 	Fila1 is Fila+1,
@@ -203,14 +280,16 @@ puedo_mover([H|T], CantidadFilas,CantidadColumnas,Visitados,[Fila,Columna],Resul
 	Columna1 is Columna+1,
 	Columna2 is Columna-1,
 	
+	%Arriba y abajo se llaman Norte y Sur para que empiecen con letras distintas y poder
+	% armar las diagonales.
 	Norte=[Fila2,Columna],
 	Sur=[Fila1,Columna],
 	Izquierda=[Fila,Columna2],
 	Derecha=[Fila,Columna1],
 	DNI=[Fila2,Columna2], %DNI -> Diagonal Norte Izquierda
-	DND=[Fila2,Columna1],
-	DSI=[Fila1,Columna2],
-	DSD=[Fila1,Columna1],
+	DND=[Fila2,Columna1], % Diagonal Norte Derecha
+	DSI=[Fila1,Columna2], % Diagonal Sur Izquierda
+	DSD=[Fila1,Columna1], % Diagonal Sur Derecha
 
 	valorEnCoordenada([H|T], CantidadColumnas, [Fila,Columna], Valor),
 
@@ -249,11 +328,15 @@ coordenada_valida(CantidadFilas,CantidadColumnas,[Fila,Columna]):-
 	Columna<CantidadColumnas.
 
 
+eliminar_repetidos([], []).
+eliminar_repetidos([H|T], Resultado) :-
+	member(H, T), eliminar_repetidos(T, Resultado).
+eliminar_repetidos([H|T], [H|Resultado]) :-
+	eliminar_repetidos(T, Resultado).
 
 	
 	
 	
 
 
-calculo(Grid, GridEnCero, Grupos, Resultado).
 

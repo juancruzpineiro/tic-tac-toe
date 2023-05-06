@@ -16,6 +16,9 @@ function Board({ grid, numOfColumns, path, onPathChange, onDone }) {
             }
         }
     }
+    
+
+
 
     function onSquareHover(pos) {
         if (path.length === 0) {    // Ignore square hover if not collecting a path.
