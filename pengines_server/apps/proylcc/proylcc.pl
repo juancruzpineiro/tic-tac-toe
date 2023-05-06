@@ -159,27 +159,37 @@ powerUp(Grid, CantidadColumnas, RGrids):-
 	RGrids=[GridEnCero,Resultado,Resultado1,ResultadoDefinitivo].
 
 
+
+eliminar_repetidos([], []).
+eliminar_repetidos([H|T], Resultado) :-
+	member(H, T), !, eliminar_repetidos(T, Resultado).
+eliminar_repetidos([H|T], [H|Resultado]) :-
+	eliminar_repetidos(T, Resultado).
+
 %HAY QUE ACTUALIZAR LA LISTA DE VISITADOS AL SALIR, CON APPEND(VISITADOS, GRUPO)
 visitar([Fila,Columna], CantidadFilas,CantidadColumnas,[X|Xs], Visitados,[[Fila,Columna]|GrupoNuevo]):-
 	puedo_mover([X|Xs], CantidadFilas, CantidadColumnas,Visitados,[Fila,Columna],Lista),
 	
-	visitarAux(Lista,CantidadFilas,CantidadColumnas,[X|Xs], Visitados, [],GrupoNuevo).
+	visitarAux(Lista,CantidadFilas,CantidadColumnas,[X|Xs], [[Fila,Columna]|Visitados], [],GrupoNuevo).
 
 	
 
 
-%visitarAux([1,2,2,3],2,2,[],[],[0,1],Resultado)
+
+
+visitarAux([],_,_,_,_,Grupo,Grupo).
+
 %Caso el nodo no fue visitado.
 visitarAux([CoordenadaActual|Resto],CantidadFilas,CantidadColumnas, Grilla,VisitadosAntes,Grupo,[CoordenadaActual|GrupoNuevo]):-
 	not(member(CoordenadaActual, VisitadosAntes)),
 	
 	puedo_mover(Grilla, CantidadFilas, CantidadColumnas,VisitadosAntes,CoordenadaActual,Lista),
 	visitarAux(Lista,CantidadFilas,CantidadColumnas,Grilla, [CoordenadaActual|VisitadosAntes], Grupo,GrupoNuevo1),
+	
+	append([CoordenadaActual|VisitadosAntes],GrupoNuevo1, VisitadosNuevo),
 
+	visitarAux(Resto,CantidadFilas,CantidadColumnas,Grilla,VisitadosNuevo, GrupoNuevo1, GrupoNuevo).
 
-	visitarAux(Resto,CantidadFilas,CantidadColumnas,Grilla,GrupoNuevo2, GrupoNuevo1, GrupoNuevo).
-
-visitarAux([],_,_,_,_,Grupo,Grupo).
 
 
 visitarAux([CoordenadaActual|Resto],CantidadFilas,CantidadColumnas, Grilla,VisitadosAntes,Grupo,GrupoNuevo):-
