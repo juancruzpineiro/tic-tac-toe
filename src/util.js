@@ -1,11 +1,22 @@
 export function numberToColor(num) {
     switch (num) {
-        case 2: return "#249cd1";
-        case 4: return "#ec893b";
-        case 8: return "#e35b89";
-        case 16: return "#af4e7a";
-        case 32: return "#a63e4a";
-        case 64: return "#8d6ebc";
+        case 2: return "#F9E57A";
+        case 4: return "#C5190E";
+        case 8: return "#AF7989";
+        case 16: return "#2B2D58";
+        case 32: return "#40DFA8";
+        case 64: return "#CC1C6A";
+        case 128: return "#F4692As";
+        case 256: return "#6C94D3";
+        case 512: return "#94A517";
+        case 1024: return "#2981B3";
+        case 2048: return "#F2508A";
+        case 4096: return "#F2508A";
+        case 8192: return "#A64B81";
+        case 16384: return "#A32A8A";
+        case 32768: return "#40DAB0";
+        case 65536: return "#D1C6E7";
+        case 131072: return "#AA8FC3";
         default: return "black";
     }
 }
@@ -34,3 +45,12 @@ const smallerPow2GreaterOrEqualThan = (num) => {
 }
 
 export const joinResult = (path, grid, numOfColumns) => smallerPow2GreaterOrEqualThan(path.reduce((result, pos) => result + valueInPos(pos, grid, numOfColumns), 0));
+
+const smallerPow2GreaterOrEqualThanAux = (num) => {
+    const log2num = Math.floor(Math.log2(num));
+    return Math.pow(2, log2num + 1);
+}
+
+export const joinResultAux = (path, grid, numOfColumns) => smallerPow2GreaterOrEqualThanAux(path.reduce((result, pos) => result + valueInPos(pos, grid, numOfColumns), 0));
+
+

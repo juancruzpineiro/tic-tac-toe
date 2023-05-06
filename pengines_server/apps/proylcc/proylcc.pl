@@ -11,10 +11,11 @@
  */ 
 
 join(Grid, NumOfColumns, Path, RGrids):-
-	Path=[X|Xs],
+	Path=[X|_Xs],
 	reemplazarCeros(Grid,NumOfColumns, Path, GridEnCero),	
 	calcularPrimero(Grid, NumOfColumns, Path, PrimerValor),
 	reemplazarValorCoordenada(GridEnCero, NumOfColumns, X, PrimerValor, GridReemplazado),
+	
 	length(Grid, Size),
 	CantidadFilas is Size/NumOfColumns,
 	gravedad(GridReemplazado, NumOfColumns, CantidadFilas,0, Gravedad1),
@@ -41,6 +42,7 @@ valorEnCoordenada([X|Xs], CantidadColumnas, Coordenada, Resultado):-
 
 valorEnCoordenadaAux([X|_],Posicion,Posicion,X).
 valorEnCoordenadaAux([_|Xs], Posicion, Pos, Resultado):-
+	Posicion\=Pos,
 	Pos1 is Pos+1,
 	valorEnCoordenadaAux(Xs, Posicion, Pos1, Resultado).
 	
@@ -49,6 +51,7 @@ valorEnCoordenadaAux([_|Xs], Posicion, Pos, Resultado):-
 calcularPrimero([X|Xs], CantidadColumnas, Camino, Resultado):-
 	calcularPrimerValor([X|Xs], CantidadColumnas, Camino, Suma, 0),
 	menorPotenciaDe2(Suma, Resultado).
+
 
 %Calcula la suma de todos los valores en el camino.
 calcularPrimerValor([], _, _, 0, _).
@@ -96,7 +99,6 @@ gravedad([X|Xs], CantidadColumnas,CantidadFilas,Contador, Resultado):-
 gravedad([X|Xs], _CantidadColumnas,CantidadFilas,CantidadFilas, [X|Xs]).
 
 gravedadAux(Grilla, CantidadColumnas, CantidadFilas, [Fila, Columna], Resultado):-
-	
 	Columna<CantidadColumnas,
 	Fila>0,
 	FilaArriba is Fila-1,
@@ -112,7 +114,6 @@ gravedadAux(Grilla, CantidadColumnas, CantidadFilas, [Fila, Columna], Resultado)
 	gravedadAux(Grilla2, CantidadColumnas,CantidadFilas, [Fila,ColumnaSiguiente], Resultado).
 
 gravedadAux(Grilla, CantidadColumnas, CantidadFilas, [Fila, Columna], Resultado):-
-	
 	Columna<CantidadColumnas,
 	Fila>0,
 	
@@ -131,7 +132,7 @@ gravedadAux(Grilla, CantidadColumnas, CantidadFilas, [CantidadFilas, CantidadCol
 
 
 numeroAleatorio(N,R) :-
-	random_between(0, N, X),
+	random_between(2, N, X),
 	R is 2^floor(log(X)/log(2)).
 
 
@@ -143,3 +144,106 @@ rellenar([X|Xs], [X|Resultado]) :-
     X \= 0,
     rellenar(Xs, Resultado).
 rellenar([],[]).
+
+/**/
+powerUp(Grid, CantidadColumnas, RGrids):-
+	length(Grid, Size),
+	CantidadFilas is Size/CantidadColumnas,
+
+	%clusters(Grid,CantidadFilas,CantidadColumnas,Grupos,GridEnCero),
+	% calculo(Grid, GridEnCero, Grupos, Resultado),
+
+	gravedad(Resultado, CantidadColumnas,CantidadFilas,0,Resultado1),
+	rellenar(Resultado1, ResultadoDefinitivo),
+
+	RGrids=[GridEnCero,Resultado,Resultado1,ResultadoDefinitivo].
+
+
+%HAY QUE ACTUALIZAR LA LISTA DE VISITADOS AL SALIR, CON APPEND(VISITADOS, GRUPO)
+visitar([Fila,Columna], CantidadFilas,CantidadColumnas,[X|Xs], Visitados,[[Fila,Columna]|GrupoNuevo]):-
+	puedo_mover([X|Xs], CantidadFilas, CantidadColumnas,Visitados,[Fila,Columna],Lista),
+	
+	visitarAux(Lista,CantidadFilas,CantidadColumnas,[X|Xs], Visitados, [],GrupoNuevo).
+
+	
+
+
+%visitarAux([1,2,2,3],2,2,[],[],[0,1],Resultado)
+%Caso el nodo no fue visitado.
+visitarAux([CoordenadaActual|Resto],CantidadFilas,CantidadColumnas, Grilla,VisitadosAntes,Grupo,[CoordenadaActual|GrupoNuevo]):-
+	not(member(CoordenadaActual, VisitadosAntes)),
+	
+	puedo_mover(Grilla, CantidadFilas, CantidadColumnas,VisitadosAntes,CoordenadaActual,Lista),
+	visitarAux(Lista,CantidadFilas,CantidadColumnas,Grilla, [CoordenadaActual|VisitadosAntes], Grupo,GrupoNuevo1),
+
+
+	visitarAux(Resto,CantidadFilas,CantidadColumnas,Grilla,GrupoNuevo2, GrupoNuevo1, GrupoNuevo).
+
+visitarAux([],_,_,_,_,Grupo,Grupo).
+
+
+visitarAux([CoordenadaActual|Resto],CantidadFilas,CantidadColumnas, Grilla,VisitadosAntes,Grupo,GrupoNuevo):-
+	member(CoordenadaActual, VisitadosAntes),
+	visitarAux(Resto,CantidadFilas,CantidadColumnas, Grilla,VisitadosAntes,Grupo,GrupoNuevo).
+
+
+puedo_mover([H|T], CantidadFilas,CantidadColumnas,Visitados,[Fila,Columna],Resultado):-
+	Fila1 is Fila+1,
+	Fila2 is Fila-1,
+	Columna1 is Columna+1,
+	Columna2 is Columna-1,
+	
+	Norte=[Fila2,Columna],
+	Sur=[Fila1,Columna],
+	Izquierda=[Fila,Columna2],
+	Derecha=[Fila,Columna1],
+	DNI=[Fila2,Columna2], %DNI -> Diagonal Norte Izquierda
+	DND=[Fila2,Columna1],
+	DSI=[Fila1,Columna2],
+	DSD=[Fila1,Columna1],
+
+	valorEnCoordenada([H|T], CantidadColumnas, [Fila,Columna], Valor),
+
+	puedo_mover_aux([H|T], CantidadFilas, CantidadColumnas, Visitados, Norte, Valor, Resultado0),
+	puedo_mover_aux([H|T], CantidadFilas, CantidadColumnas, Visitados, Sur, Valor, Resultado1),
+	puedo_mover_aux([H|T], CantidadFilas, CantidadColumnas, Visitados, Izquierda, Valor, Resultado2),
+	puedo_mover_aux([H|T], CantidadFilas, CantidadColumnas, Visitados, Derecha, Valor, Resultado3),
+	puedo_mover_aux([H|T], CantidadFilas, CantidadColumnas, Visitados, DNI, Valor,Resultado4),
+	puedo_mover_aux([H|T], CantidadFilas, CantidadColumnas, Visitados, DND, Valor,Resultado5),
+	puedo_mover_aux([H|T], CantidadFilas, CantidadColumnas, Visitados, DSD, Valor,Resultado6),
+	puedo_mover_aux([H|T], CantidadFilas, CantidadColumnas, Visitados, DSI, Valor,ResultadoFinal),
+	append([Resultado0,Resultado1,Resultado2,Resultado3,Resultado4,Resultado5,Resultado6,ResultadoFinal], Resultado).
+
+
+puedo_mover_aux([H|T], CantidadFilas, CantidadColumnas, Visitados, [Fila,Columna],Valor, [[Fila,Columna]]):-
+	coordenada_valida(CantidadFilas,CantidadColumnas,[Fila,Columna]),
+	not(member([Fila,Columna], Visitados)),
+	valorEnCoordenada([H|T], CantidadColumnas, [Fila,Columna], Valor1),
+	Valor=:=Valor1.
+
+puedo_mover_aux(_, CantidadFilas, CantidadColumnas, _Visitados, [Fila,Columna],_Valor, []):-
+	not(coordenada_valida(CantidadFilas,CantidadColumnas,[Fila,Columna])).
+
+puedo_mover_aux(_, _CantidadFilas, _CantidadColumnas, Visitados, [Fila,Columna],_Valor, []):-
+ 	member([Fila,Columna], Visitados).
+
+puedo_mover_aux([H|T], _CantidadFilas, CantidadColumnas, _Visitados, [Fila,Columna],Valor, []):-
+	valorEnCoordenada([H|T], CantidadColumnas, [Fila,Columna], Valor1),
+	Valor=\=Valor1.
+
+
+coordenada_valida(CantidadFilas,CantidadColumnas,[Fila,Columna]):-
+	Fila>=0,
+	Columna>=0,
+	Fila<CantidadFilas,
+	Columna<CantidadColumnas.
+
+
+
+	
+	
+	
+
+
+calculo(Grid, GridEnCero, Grupos, Resultado).
+

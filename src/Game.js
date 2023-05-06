@@ -1,24 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import PengineClient from './PengineClient';
 import Board from './Board';
-import { joinResult } from './util';
-
+import { joinResult, joinResultAux } from './util';
+import Boost from './Boost';
 let pengine;
 
 function Game() {
-
+  
   // State
   const [grid, setGrid] = useState(null);
   const [numOfColumns, setNumOfColumns] = useState(null);
   const [score, setScore] = useState(0);
+  const [valorPath, setValorPath] = useState(0);//Usado para display del path
   const [path, setPath] = useState([]);
   const [waiting, setWaiting] = useState(false);
-
+  //Si se esta haciendo un path (Se usa para el valor)
+  const [isActive, setIsActive] = useState(false);
   useEffect(() => {
     // This is executed just once, after the first render.
     PengineClient.init(onServerReady);
   }, []);
 
+  //Usado para display del path
+  const displayValue = isActive ? valorPath : score;
   /**
    * Called when the server was successfully initialized
    */
@@ -43,6 +47,8 @@ function Game() {
     }
     setPath(newPath);
     console.log(JSON.stringify(newPath));
+    setValorPath(joinResultAux(path, grid, numOfColumns));
+    setIsActive(true);
   }
 
   /**
@@ -70,6 +76,7 @@ function Game() {
     const pathS = JSON.stringify(path);
     const queryS = "join(" + gridS + "," + numOfColumns + "," + pathS + ", RGrids)";
     setWaiting(true);
+    setIsActive(false);
     pengine.query(queryS, (success, response) => {
       if (success) {
         setScore(score + joinResult(path, grid, numOfColumns));
@@ -103,8 +110,11 @@ function Game() {
   return (
     <div className="game">
       <div className="header">
-        <div className="score">{score}</div>
+        <div className={isActive ? 'squareScore' : 'score'}>
+          {displayValue}
+        </div>
       </div>
+      <Boost/>
       <Board
         grid={grid}
         numOfColumns={numOfColumns}
