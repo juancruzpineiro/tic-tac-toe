@@ -12,6 +12,10 @@
  */ 
 
 join(Grid, NumOfColumns, Path, RGrids):-
+
+	/*
+	Paso 1: Reemplazar el camino por ceros, calcular la suma
+	*/
 	Path=[X|_Xs],
 	reemplazarCeros(Grid,NumOfColumns, Path, GridEnCero),	
 	calcularPrimero(Grid, NumOfColumns, Path, PrimerValor),
@@ -68,7 +72,8 @@ calcularPrimerValor([X|Xs], CantidadColumnas, Camino, Suma, Pos) :-
 		calcularPrimerValor(Xs, CantidadColumnas, Camino, Suma, Pos1)
 	).
 
-menorPotenciaDe2(Numero, Resultado) :- Resultado is 2^(ceiling(log(Numero)/log(2))).
+menorPotenciaDe2(Numero, Resultado) :- 
+	Resultado is 2^(floor(log(Numero)/log(2))+1).
 
 
 % Reemplaza todos los valores en del camino especificado por ceros.
@@ -132,14 +137,14 @@ gravedadAux(Grilla, _CantidadColumnas, CantidadFilas, [CantidadFilas, _Columna],
 gravedadAux(Grilla, CantidadColumnas, CantidadFilas, [CantidadFilas, CantidadColumnas], Grilla).
 
 
-numeroAleatorio(N,R) :-
-	random_between(2, N, X),
-	R is 2^floor(log(X)/log(2)).
+numeroAleatorio(P) :-
+    random_between(1, 6, Exp),
+    P is 2^Exp.
 
 
 /*Reemplaza los valores que quedaron nulos con valores aleatorios*/
 rellenar([0|Xs], [Nuevo|Resultado1]) :-
-    numeroAleatorio(70, Nuevo),
+    numeroAleatorio(Nuevo),
     rellenar(Xs, Resultado1).
 rellenar([X|Xs], [X|Resultado]) :-
     X \= 0,
