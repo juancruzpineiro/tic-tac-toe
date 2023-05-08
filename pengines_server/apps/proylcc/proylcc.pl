@@ -21,7 +21,7 @@ join(Grid, NumOfColumns, Path, RGrids):-
 	/*
 	Paso 2: Reemplazo la última coordenada
 	*/
-	Path=[X|_Xs],
+	ultimoElemento(Path,X),
 	calcularPrimero(Grid, NumOfColumns, Path, PrimerValor),
 	reemplazarValorCoordenada(GridEnCero, NumOfColumns, X, PrimerValor, GridReemplazado),
 	
@@ -36,6 +36,12 @@ join(Grid, NumOfColumns, Path, RGrids):-
 
 	RGrids = [GridEnCero, GridReemplazado, Gravedad1, Final].
 
+/*
+	Retorna el ultimo elemento de la lista.
+*/
+ultimoElemento([_|Xs], Resultado):-
+	ultimoElemento(Xs, Resultado).
+ultimoElemento([X],X).
 
 /*
 	reemplazarValorCorrdenada(+Griila, +CantidadColumnas, +Coordenada, +Valor, -Resultado)
@@ -389,7 +395,8 @@ visitar([Fila,Columna], CantidadFilas,CantidadColumnas,[X|Xs], Visitados,[[Fila,
 
 
 /*
-	visitarAux(+ListaCoordenadas, +CantidadFilas, +CantidadColumnas, +Grilla, +Visitados, Grupo)
+	visitarAux(+ListaCoordenadas, +CantidadFilas, +CantidadColumnas, +Grilla, +Visitados, +GrupoActual,GrupoNuevo)
+		- GrupoNuevo es el grupo formado por las coordenadas adyacentes del mismo valor.
 */
 visitarAux([],_,_,_,_,Grupo,Grupo).
 
@@ -397,11 +404,12 @@ visitarAux([],_,_,_,_,Grupo,Grupo).
 visitarAux([CoordenadaActual|Resto],CantidadFilas,CantidadColumnas, Grilla,VisitadosAntes,Grupo,[CoordenadaActual|GrupoNuevo]):-
 	not(member(CoordenadaActual, VisitadosAntes)),
 	
+	%Primero Visito la vecindad de la CoordenadaActual y  marco como visitados 
 	puedoMover(Grilla, CantidadFilas, CantidadColumnas,VisitadosAntes,CoordenadaActual,Lista),
 	visitarAux(Lista,CantidadFilas,CantidadColumnas,Grilla, [CoordenadaActual|VisitadosAntes], Grupo,GrupoNuevo1),
 	
 	append([CoordenadaActual|VisitadosAntes],GrupoNuevo1, VisitadosNuevo),
-
+	%Después visito el resto de la lista
 	visitarAux(Resto,CantidadFilas,CantidadColumnas,Grilla,VisitadosNuevo, GrupoNuevo1, GrupoNuevo).
 
 visitarAux([CoordenadaActual|Resto],CantidadFilas,CantidadColumnas, Grilla,VisitadosAntes,Grupo,GrupoNuevo):-
