@@ -6,7 +6,7 @@ export function numberToColor(num) {
         case 16: return "#2B2D58";
         case 32: return "#40DFA8";
         case 64: return "#CC1C6A";
-        case 128: return "#F4692As";
+        case 128: return "#AA1345";
         case 256: return "#6C94D3";
         case 512: return "#94A517";
         case 1024: return "#2981B3";
@@ -41,7 +41,7 @@ export const isAdyacent = (posA, posB) => {
 
 const smallerPow2GreaterOrEqualThan = (num) => {
     const log2num = Math.floor(Math.log2(num));
-    return Math.pow(2, log2num) === num ? num : Math.pow(2, log2num + 1);
+    return Math.pow(2, log2num) === num ?  num :Math.pow(2, log2num + 1);
 }
 
 export const joinResult = (path, grid, numOfColumns) => smallerPow2GreaterOrEqualThan(path.reduce((result, pos) => result + valueInPos(pos, grid, numOfColumns), 0));

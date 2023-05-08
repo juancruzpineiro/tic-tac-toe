@@ -11,10 +11,11 @@ function Game() {
   const [grid, setGrid] = useState(null);
   const [numOfColumns, setNumOfColumns] = useState(null);
   const [score, setScore] = useState(0);
-  const [valorPath, setValorPath] = useState(0);//Usado para display del path
+ 
   const [path, setPath] = useState([]);
   const [waiting, setWaiting] = useState(false);
-  //Si se esta haciendo un path (Se usa para el valor)
+  //Si se esta haciendo un path (Se usa para el valor) 
+  const [valorPath, setValorPath] = useState(0);
   const [isActive, setIsActive] = useState(false);
   useEffect(() => {
     // This is executed just once, after the first render.
@@ -48,7 +49,7 @@ function Game() {
     setPath(newPath);
     console.log(JSON.stringify(newPath));
     setValorPath(joinResultAux(path, grid, numOfColumns));
-    setIsActive(true);
+    setIsActive(true); //Cambia el valor en el return
   }
 
   /**
@@ -109,13 +110,14 @@ function Game() {
    * Displays each grid of the sequence as the current grid in 1sec intervals.
    * @param {number[][]} rGrids a sequence of grids.
    */
-  function animateEffect(rGrids) {
+  function animateEffect(rGrids, time) {
+    let time1=time;
     setGrid(rGrids[0]);
     const restRGrids = rGrids.slice(1);
     if (restRGrids.length > 0) {
       setTimeout(() => {
         animateEffect(restRGrids);
-      }, 1000);
+      }, 500);
     } else {
       setWaiting(false);
     }
