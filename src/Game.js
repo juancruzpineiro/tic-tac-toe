@@ -48,8 +48,9 @@ function Game() {
     }
     setPath(newPath);
     console.log(JSON.stringify(newPath));
-    setValorPath(joinResultAux(path, grid, numOfColumns));
     setIsActive(true); //Cambia el valor en el return
+    setValorPath(joinResult(newPath, grid, numOfColumns));
+   
   }
 
   /**
@@ -73,6 +74,7 @@ function Game() {
           RGrids
         ).
     */
+  
     const gridS = JSON.stringify(grid);
     const pathS = JSON.stringify(path);
     const queryS = "join(" + gridS + "," + numOfColumns + "," + pathS + ", RGrids)";

@@ -46,11 +46,4 @@ const smallerPow2GreaterOrEqualThan = (num) => {
 
 export const joinResult = (path, grid, numOfColumns) => smallerPow2GreaterOrEqualThan(path.reduce((result, pos) => result + valueInPos(pos, grid, numOfColumns), 0));
 
-const smallerPow2GreaterOrEqualThanAux = (num) => {
-    const log2num = Math.floor(Math.log2(num));
-    return Math.pow(2, log2num + 1);
-}
-
-export const joinResultAux = (path, grid, numOfColumns) => smallerPow2GreaterOrEqualThanAux(path.reduce((result, pos) => result + valueInPos(pos, grid, numOfColumns), 0));
-
 
