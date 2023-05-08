@@ -21,8 +21,8 @@ join(Grid, NumOfColumns, Path, RGrids):-
 	/*
 	Paso 2: Reemplazo la última coordenada
 	*/
-	ultimoElemento(Path,X),
-	calcularPrimero(Grid, NumOfColumns, Path, PrimerValor),
+	last(Path, X),
+	calcularUltimo(Grid, NumOfColumns, Path, PrimerValor),
 	reemplazarValorCoordenada(GridEnCero, NumOfColumns, X, PrimerValor, GridReemplazado),
 	
 	/*
@@ -35,13 +35,6 @@ join(Grid, NumOfColumns, Path, RGrids):-
 	rellenar(Gravedad1, Final),
 
 	RGrids = [GridEnCero, GridReemplazado, Gravedad1, Final].
-
-/*
-	Retorna el ultimo elemento de la lista.
-*/
-ultimoElemento([_|Xs], Resultado):-
-	ultimoElemento(Xs, Resultado).
-ultimoElemento([X],X).
 
 /*
 	reemplazarValorCorrdenada(+Griila, +CantidadColumnas, +Coordenada, +Valor, -Resultado)
@@ -92,33 +85,33 @@ valorEnCoordenadaAux([_|Xs], Posicion, PosicionActual, Resultado):-
 		-Resultado es el valor de la menor potencia de 2 mayor o igual a la suma de las coordenadas.
 		-Camino es una lista de coordenadas de formato [Fila, Columna]
 */
-calcularPrimero([X|Xs], CantidadColumnas, Camino, Resultado):-
-	calcularPrimerValor([X|Xs], CantidadColumnas, Camino, Suma),
+calcularUltimo([X|Xs], CantidadColumnas, Camino, Resultado):-
+	calcularUltimoValor([X|Xs], CantidadColumnas, Camino, Suma),
 	menorPotenciaDe2(Suma, Resultado).
 
 /*
-	calcularPrimerValor(+Grilla,+CantidadColumnas,+Camino, Resultado)
+	calcularUltimoValor(+Grilla,+CantidadColumnas,+Camino, Resultado)
 		-Función recursiva auxiliar para calcularPrimero/4
 		-Resultado es la suma de los valores del camino en la grilla.
 */
 % Caso Base:
-calcularPrimerValor(_,_,[],0).
+calcularUltimoValor(_,_,[],0).
 % Caso Recursivo:
-calcularPrimerValor(Grilla, CantidadColumnas,[CoordenadaActual|Resto],Suma):-
+calcularUltimoValor(Grilla, CantidadColumnas,[CoordenadaActual|Resto],Suma):-
 	valorEnCoordenada(Grilla,CantidadColumnas,CoordenadaActual, Valor),
-	calcularPrimerValor(Grilla,CantidadColumnas,Resto,Suma1),
+	calcularUltimoValor(Grilla,CantidadColumnas,Resto,Suma1),
 	Suma is Valor+Suma1.
 
 /*
 	menorPotenciaDe2(+Numero,-Resulado)
-		Resultado es la menor potencai de 2 mayor o igual al numero dado.
+		Resultado es la menor potencia de 2 mayor o igual al numero dado.
 */
 menorPotenciaDe2(Numero, Resultado) :-
     Resultado is 2**ceil(log(Numero)/log(2)).
 
 /*	
 	reemplazarCeros(+Grilla, +CantidadColumnas, +Camino, -Resultado)
-		Resultado es la grilla con todas las coordenadas del camino reemplazadas por el valor '0'.
+		-Resultado es la grilla con todas las coordenadas del camino reemplazadas por el valor '0'.
 */
 % Caso Base:
 reemplazarCeros(Grilla,_,[],Grilla).
@@ -140,9 +133,8 @@ iniciarGravedad(Grilla,CantidadColumnas,CantidadFilas,Resultado):-
 	gravedad(+Grilla, +CantidadColumnas, +CantidadFilas, +Contador, -Resultado)
 		-Itera sobre la grilla CantidadFilas veces.
 		-Resultado es la grilla con el efecto de gravedad aplicado.
-		-Empieza por la segunda fila para que todas tengan una fila encima.
 */ 
-%Caso Base:
+%Caso Base: Se ejecutó gravedadAux cantidadFilas veces.
 gravedad([X|Xs], _CantidadColumnas,CantidadFilas,CantidadFilas, [X|Xs]).
 %Caso Recursivo:
 gravedad([X|Xs], CantidadColumnas,CantidadFilas,Contador, Resultado):-
@@ -153,8 +145,9 @@ gravedad([X|Xs], CantidadColumnas,CantidadFilas,Contador, Resultado):-
 
 /*
 	GravedadAux(+Grilla,+CantidadColumnas,+Coordenada,-Resultado)
-		Itera sobre la Grilla, cambiando de lugar las coordenadas si la de abajo tiene valor 0.
-		Todos valores 0 suben una fila por cada ejecución.
+		-Itera sobre la Grilla, cambiando de lugar las coordenadas si la de abajo tiene valor 0.
+		-Todos valores 0 suben una fila por cada ejecución de la sentencia
+		-Se tiene que empezar por la segunda ([1,0]) fila para que todas tengan una fila encima.
 */
 %Caso Recursivo: La coordenada tiene valor 0
 gravedadAux(Grilla, CantidadColumnas, [Fila, Columna], Resultado):-
@@ -183,12 +176,12 @@ gravedadAux(Grilla, CantidadColumnas, [Fila, Columna], Resultado):-
 	ColumnaSiguiente is Columna+1,
 	gravedadAux(Grilla, CantidadColumnas, [Fila,ColumnaSiguiente], Resultado).
 
-%Caso Recutsivo: Se llegó hasta la última columna
+%Caso Recutsivo: Se llegó hasta la última columna y paso de Fila
 gravedadAux(Grilla, CantidadColumnas, [Fila, CantidadColumnas], Resultado):-
 	FilaSiguiente is Fila+1,
 	gravedadAux(Grilla,CantidadColumnas,[FilaSiguiente,0], Resultado).
 
-%Caso Base
+%Caso Base: Llegué a la última fila.
 gravedadAux(Grilla, CantidadColumnas, [_, CantidadColumnas], Grilla).
 
 /*
@@ -251,9 +244,9 @@ powerUp(Grid, CantidadColumnas, RGrids):-
 	append(Resultado2, [ResultadoDefinitivo], RGrids).
 
 /*
-	agruparTodos(+ListadeClusters, +Grilla,+CantidadColumnas,Transiciones)
-		Transiciones es la lista de Grillas que representa la animación de agrupar los Clusters
-		Itera sobre la ListaDeClusters agrupando, seteando en 0 y sumando los valores para cada cluster
+	agruparTodos(+ListadeClusters, +Grilla,+CantidadColumnas,-Transiciones)
+		-Transiciones es la lista de Grillas que representa la animación de agrupar los Clusters
+		-Itera sobre la ListaDeClusters agrupando, seteando en 0 y sumando los valores para cada cluster.
 */
 %Caso Base
 agruparTodos([], _, _, []).
@@ -267,24 +260,24 @@ agruparTodos([ListaActual|Resto], Grid, CantidadColumnas, Transiciones):-
 
 /*
 	agrupar(+ListaDeCoordenadas, +Grilla, +CantidadColumnas, -Resultado)
-	Resultado es la lista que contiene las posiciones de la lista de coordenaddas
-	reemplazas por "0" y la lista con el nuevo elemento a la derecha abajo de la coordenada.
+		Resultado es la lista que contiene dos Grillas, con las coordenaddas de la ListadeCoordenadas
+		reemplazas por "0" y la GrillaEnCero con el nuevo elemento a la derecha abajo de la coordenada.
 */
 agrupar(Lista, Grilla, CantidadColumnas, [GridEnCero,Nuevo]):-
 	reemplazarCeros(Grilla,CantidadColumnas,Lista,GridEnCero),
 
-	calcularPrimero(Grilla, CantidadColumnas, Lista, Valor),
+	calcularUltimo(Grilla, CantidadColumnas, Lista, Valor),
 	abajoDerecha(Lista, Coordenada),
 	reemplazarValorCoordenada(GridEnCero, CantidadColumnas, Coordenada, Valor, Nuevo).
 
 
 /*
 	abajoDerecha(+ListaCoordenadas, -Resultado)
-		Resultado es la coordenada más abajo a la derecha de la ListaCoordenadas
+		-Resultado es la coordenada más abajo a la derecha de la ListaCoordenadas
 */
-%Caso Base
+%Caso Base: última coordenada de la lista
 abajoDerecha([[Fila,Columna]], [Fila,Columna]).
-%Casos Recursivos: 
+%Casos Recursivos: Buscar la siguiente coordenada y la comparan con la anterior
 abajoDerecha([[Fila,Columna]|Resto], Coordenada) :-
     abajoDerecha(Resto, [Fila2,Columna2]),
     Fila >= Fila2,
@@ -389,7 +382,7 @@ limpiarLista([H|T], [H|Resultado]) :-
 */
 visitar([Fila,Columna], CantidadFilas,CantidadColumnas,[X|Xs], Visitados,[[Fila,Columna]|GrupoNuevo]):-
 	%Lista es una lista de coordenadas adyacentes que se pueden visitar
-	puedoMover([X|Xs], CantidadFilas, CantidadColumnas,Visitados,[Fila,Columna],Lista),
+	puedoVisitar([X|Xs], CantidadFilas, CantidadColumnas,Visitados,[Fila,Columna],Lista),
 
 	visitarAux(Lista,CantidadFilas,CantidadColumnas,[X|Xs], [[Fila,Columna]|Visitados], [],GrupoNuevo).
 
@@ -397,71 +390,86 @@ visitar([Fila,Columna], CantidadFilas,CantidadColumnas,[X|Xs], Visitados,[[Fila,
 /*
 	visitarAux(+ListaCoordenadas, +CantidadFilas, +CantidadColumnas, +Grilla, +Visitados, +GrupoActual,GrupoNuevo)
 		- GrupoNuevo es el grupo formado por las coordenadas adyacentes del mismo valor.
+		- Se inicia con GrupoActual vacío.
+
 */
+%Caso base la lista a visitar está vacía:
 visitarAux([],_,_,_,_,Grupo,Grupo).
 
-%Caso el nodo no fue visitado.
+%Caso Recursivo: el nodo no fue visitado.
 visitarAux([CoordenadaActual|Resto],CantidadFilas,CantidadColumnas, Grilla,VisitadosAntes,Grupo,[CoordenadaActual|GrupoNuevo]):-
 	not(member(CoordenadaActual, VisitadosAntes)),
-	
 	%Primero Visito la vecindad de la CoordenadaActual y  marco como visitados 
-	puedoMover(Grilla, CantidadFilas, CantidadColumnas,VisitadosAntes,CoordenadaActual,Lista),
+	puedoVisitar(Grilla, CantidadFilas, CantidadColumnas,VisitadosAntes,CoordenadaActual,Lista),
 	visitarAux(Lista,CantidadFilas,CantidadColumnas,Grilla, [CoordenadaActual|VisitadosAntes], Grupo,GrupoNuevo1),
-	
 	append([CoordenadaActual|VisitadosAntes],GrupoNuevo1, VisitadosNuevo),
+
 	%Después visito el resto de la lista
 	visitarAux(Resto,CantidadFilas,CantidadColumnas,Grilla,VisitadosNuevo, GrupoNuevo1, GrupoNuevo).
 
+% Caso Recursivo: La coordenada ya fue visitada, sigo visitando las otras.
 visitarAux([CoordenadaActual|Resto],CantidadFilas,CantidadColumnas, Grilla,VisitadosAntes,Grupo,GrupoNuevo):-
 	member(CoordenadaActual, VisitadosAntes),
 	visitarAux(Resto,CantidadFilas,CantidadColumnas, Grilla,VisitadosAntes,Grupo,GrupoNuevo).
 
-puedoMover([H|T], CantidadFilas,CantidadColumnas,Visitados,[Fila,Columna],Resultado):-
+/*
+	puedoVisitar(+Grilla, +CantidadFilas, +CantidadColumnas, +Visitados, +Coordenada, -Resultado)
+		-Resultado es la lista de las coordenadas adyacentes que puedo visitar.
+		-Se evalúa si ya están visitadas, si se encuentran en un borde y si coinciden en el valor.
+	
+*/
+puedoVisitar(Grilla, CantidadFilas,CantidadColumnas,Visitados,[Fila,Columna],Resultado):-
 	Fila1 is Fila+1,
 	Fila2 is Fila-1,
 	Columna1 is Columna+1,
 	Columna2 is Columna-1,
 	
-	%Arriba y abajo se llaman Norte y Sur para que empiecen con letras distintas y poder
-	% armar las diagonales.
+	%Arriba y abajo se llaman Norte y Sur para que empiecen con letras distintas y poder armar las diagonales.
 	Norte=[Fila2,Columna],
 	Sur=[Fila1,Columna],
 	Izquierda=[Fila,Columna2],
 	Derecha=[Fila,Columna1],
-	DNI=[Fila2,Columna2], %DNI -> Diagonal Norte Izquierda
+	DNI=[Fila2,Columna2], % Diagonal Norte Izquierda
 	DND=[Fila2,Columna1], % Diagonal Norte Derecha
 	DSI=[Fila1,Columna2], % Diagonal Sur Izquierda
 	DSD=[Fila1,Columna1], % Diagonal Sur Derecha
 
-	valorEnCoordenada([H|T], CantidadColumnas, [Fila,Columna], Valor),
+	valorEnCoordenada(Grilla, CantidadColumnas, [Fila,Columna], Valor),
 
-	puedoMoverAux([H|T], CantidadFilas, CantidadColumnas, Visitados, Norte, Valor, Resultado0),
-	puedoMoverAux([H|T], CantidadFilas, CantidadColumnas, Visitados, Sur, Valor, Resultado1),
-	puedoMoverAux([H|T], CantidadFilas, CantidadColumnas, Visitados, Izquierda, Valor, Resultado2),
-	puedoMoverAux([H|T], CantidadFilas, CantidadColumnas, Visitados, Derecha, Valor, Resultado3),
-	puedoMoverAux([H|T], CantidadFilas, CantidadColumnas, Visitados, DNI, Valor,Resultado4),
-	puedoMoverAux([H|T], CantidadFilas, CantidadColumnas, Visitados, DND, Valor,Resultado5),
-	puedoMoverAux([H|T], CantidadFilas, CantidadColumnas, Visitados, DSD, Valor,Resultado6),
-	puedoMoverAux([H|T], CantidadFilas, CantidadColumnas, Visitados, DSI, Valor,ResultadoFinal),
+	puedoVisitarAux(Grilla, CantidadFilas, CantidadColumnas, Visitados, Norte, Valor, Resultado0),
+	puedoVisitarAux(Grilla, CantidadFilas, CantidadColumnas, Visitados, Sur, Valor, Resultado1),
+	puedoVisitarAux(Grilla, CantidadFilas, CantidadColumnas, Visitados, Izquierda, Valor, Resultado2),
+	puedoVisitarAux(Grilla, CantidadFilas, CantidadColumnas, Visitados, Derecha, Valor, Resultado3),
+	puedoVisitarAux(Grilla, CantidadFilas, CantidadColumnas, Visitados, DNI, Valor,Resultado4),
+	puedoVisitarAux(Grilla, CantidadFilas, CantidadColumnas, Visitados, DND, Valor,Resultado5),
+	puedoVisitarAux(Grilla, CantidadFilas, CantidadColumnas, Visitados, DSD, Valor,Resultado6),
+	puedoVisitarAux(Grilla, CantidadFilas, CantidadColumnas, Visitados, DSI, Valor,ResultadoFinal),
 	append([Resultado0,Resultado1,Resultado2,Resultado3,Resultado4,Resultado5,Resultado6,ResultadoFinal], Resultado).
 
-
-puedoMoverAux([H|T], CantidadFilas, CantidadColumnas, Visitados, [Fila,Columna],Valor, [[Fila,Columna]]):-
+%Devuelve la misma coordenada si no están visitadas, si no se encuentran en un borde y si coinciden en el valor.
+puedoVisitarAux(Grilla, CantidadFilas, CantidadColumnas, Visitados, [Fila,Columna],Valor, [[Fila,Columna]]):-
 	coordenadaValida(CantidadFilas,CantidadColumnas,[Fila,Columna]),
 	not(member([Fila,Columna], Visitados)),
-	valorEnCoordenada([H|T], CantidadColumnas, [Fila,Columna], Valor1),
+	valorEnCoordenada(Grilla, CantidadColumnas, [Fila,Columna], Valor1),
 	Valor=:=Valor1.
 
-puedoMoverAux(_, CantidadFilas, CantidadColumnas, _Visitados, [Fila,Columna],_Valor, []):-
+%Evalúa si no es una coordenada válida.
+puedoVisitarAux(_, CantidadFilas, CantidadColumnas, _Visitados, [Fila,Columna],_Valor, []):-
 	not(coordenadaValida(CantidadFilas,CantidadColumnas,[Fila,Columna])).
 
-puedoMoverAux(_, _CantidadFilas, _CantidadColumnas, Visitados, [Fila,Columna],_Valor, []):-
+%Evalúa si ya fue visitada.
+puedoVisitarAux(_, _CantidadFilas, _CantidadColumnas, Visitados, [Fila,Columna],_Valor, []):-
  	member([Fila,Columna], Visitados).
 
-puedoMoverAux([H|T], _CantidadFilas, CantidadColumnas, _Visitados, [Fila,Columna],Valor, []):-
-	valorEnCoordenada([H|T], CantidadColumnas, [Fila,Columna], Valor1),
+%Evalúa si el valor no coincide.
+puedoVisitarAux(Grilla, _CantidadFilas, CantidadColumnas, _Visitados, [Fila,Columna],Valor, []):-
+	valorEnCoordenada(Grilla, CantidadColumnas, [Fila,Columna], Valor1),
 	Valor=\=Valor1.
 
+/*
+	coordenadaValida(+CantidadFilas,+CantidadColumnas,+Coordenada)
+		-True si la coordenada es valida, False en caso contrario.
+*/
 coordenadaValida(CantidadFilas,CantidadColumnas,[Fila,Columna]):-
 	Fila>=0,
 	Columna>=0,
@@ -469,10 +477,18 @@ coordenadaValida(CantidadFilas,CantidadColumnas,[Fila,Columna]):-
 	Columna<CantidadColumnas.
 
 
+/*
+	eliminarRepetidos(+Lista,-Resultado)
+		Resultado es la misma lista, pero sin elementos repetidos.
 
+*/
+%Caso Base: la lista está vacía.
 eliminarRepetidos([], []).
+%Caso Recursivo: El primer elemento se repite.
 eliminarRepetidos([H|T], Resultado) :-
-	member(H, T), eliminarRepetidos(T, Resultado).
+	member(H, T), 
+	eliminarRepetidos(T, Resultado).
+%Caso recursivo: El primer elemento no se repite.
 eliminarRepetidos([H|T], [H|Resultado]) :-
 	eliminarRepetidos(T, Resultado).
 
