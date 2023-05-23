@@ -140,11 +140,16 @@ function Game() {
   return (
     <div className="game">
       <div className="header">
-      <div className={isActive ? 'squareScore active' : 'score'} style={isActive ? { backgroundColor: numberToColor(displayValue) } : {}}>
-          {displayValue}
+        <div className={isActive ? 'squareScore active' : 'score'} style={isActive ? { backgroundColor: numberToColor(displayValue) } : {}}>
+            {displayValue}
         </div>
       </div>
-      <Boost onClick={onButtonClick} />
+      <div className="botonera">
+        <Boost onClick={onButtonClick} />
+        <Boost onClick={onButtonClick} />
+        <Boost onClick={onButtonClick} />
+      </div>
+      
       <Board
         grid={grid}
         numOfColumns={numOfColumns}

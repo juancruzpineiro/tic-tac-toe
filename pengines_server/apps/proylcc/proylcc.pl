@@ -5,7 +5,7 @@
 	]).
 
 
-/**
+/*
  * join(+Grid, +NumOfColumns, +Path, -RGrids) 
  * RGrids es la lista de grillas representando el efecto, en etapas, de combinar las celdas del camino Path
  * en la grilla Grid, con número de columnas NumOfColumns. El número 0 representa que la celda está vacía. 
@@ -382,55 +382,36 @@ visitarAux([CoordenadaActual|Resto],CantidadFilas,CantidadColumnas, Grilla,Visit
 	puedoVisitar(+Grilla, +CantidadFilas, +CantidadColumnas, +Visitados, +Coordenada, -Resultado)
 		-Resultado es la lista de las coordenadas adyacentes que puedo visitar.
 		-Se evalúa si ya están visitadas, si se encuentran en un borde y si coinciden en el valor.
-	
 */
 puedoVisitar(Grilla, CantidadFilas,CantidadColumnas,Visitados,[Fila,Columna],Resultado):-
-	Fila1 is Fila+1,
-	Fila2 is Fila-1,
-	Columna1 is Columna+1,
-	Columna2 is Columna-1,
-	
-	%Arriba y abajo se llaman Norte y Sur para que empiecen con letras distintas y poder armar las diagonales.
-	Norte=[Fila2,Columna],
-	Sur=[Fila1,Columna],
-	Izquierda=[Fila,Columna2],
-	Derecha=[Fila,Columna1],
-	DNI=[Fila2,Columna2], % Diagonal Norte Izquierda
-	DND=[Fila2,Columna1], % Diagonal Norte Derecha
-	DSI=[Fila1,Columna2], % Diagonal Sur Izquierda
-	DSD=[Fila1,Columna1], % Diagonal Sur Derecha
-
+	adyacentes([Fila,Columna],Adyacentes),	
 	valorEnCoordenada(Grilla, CantidadColumnas, [Fila,Columna], Valor),
+	findall(
+		[Fil,Col],
+		(
+			member([Fil,Col],Adyacentes), 
+			puedoVisitarAux(Grilla, CantidadFilas, CantidadColumnas, Visitados, [Fil,Col], Valor)
+		), 
+		Resultado
+	).
 
-	puedoVisitarAux(Grilla, CantidadFilas, CantidadColumnas, Visitados, Norte, Valor, Resultado0),
-	puedoVisitarAux(Grilla, CantidadFilas, CantidadColumnas, Visitados, Sur, Valor, Resultado1),
-	puedoVisitarAux(Grilla, CantidadFilas, CantidadColumnas, Visitados, Izquierda, Valor, Resultado2),
-	puedoVisitarAux(Grilla, CantidadFilas, CantidadColumnas, Visitados, Derecha, Valor, Resultado3),
-	puedoVisitarAux(Grilla, CantidadFilas, CantidadColumnas, Visitados, DNI, Valor,Resultado4),
-	puedoVisitarAux(Grilla, CantidadFilas, CantidadColumnas, Visitados, DND, Valor,Resultado5),
-	puedoVisitarAux(Grilla, CantidadFilas, CantidadColumnas, Visitados, DSD, Valor,Resultado6),
-	puedoVisitarAux(Grilla, CantidadFilas, CantidadColumnas, Visitados, DSI, Valor,ResultadoFinal),
-	append([Resultado0,Resultado1,Resultado2,Resultado3,Resultado4,Resultado5,Resultado6,ResultadoFinal], Resultado).
 
-%Devuelve la misma coordenada si no están visitadas, si no se encuentran en un borde y si coinciden en el valor.
-puedoVisitarAux(Grilla, CantidadFilas, CantidadColumnas, Visitados, [Fila,Columna],Valor, [[Fila,Columna]]):-
+%Devuelve True si La coordenada no está, visitada, si no se encuentra en un borde y si coincide en el valor.
+puedoVisitarAux(Grilla, CantidadFilas, CantidadColumnas, Visitados, [Fila,Columna],Valor):-
 	coordenadaValida(CantidadFilas,CantidadColumnas,[Fila,Columna]),
 	not(member([Fila,Columna], Visitados)),
 	valorEnCoordenada(Grilla, CantidadColumnas, [Fila,Columna], Valor1),
 	Valor=:=Valor1.
 
-%Evalúa si no es una coordenada válida.
-puedoVisitarAux(_, CantidadFilas, CantidadColumnas, _Visitados, [Fila,Columna],_Valor, []):-
-	not(coordenadaValida(CantidadFilas,CantidadColumnas,[Fila,Columna])).
 
-%Evalúa si ya fue visitada.
-puedoVisitarAux(_, _CantidadFilas, _CantidadColumnas, Visitados, [Fila,Columna],_Valor, []):-
- 	member([Fila,Columna], Visitados).
+/**/
+adyacentes([Fila,Columna], Resultado):-
+	Fila1 is Fila+1,
+	Fila2 is Fila-1,
+	Columna1 is Columna+1,
+	Columna2 is Columna-1,
+	Resultado=[[Fila2,Columna],[Fila1,Columna],[Fila,Columna2],[Fila,Columna1],[Fila2,Columna2],[Fila2,Columna1],[Fila1,Columna2],[Fila1,Columna1]].
 
-%Evalúa si el valor no coincide.
-puedoVisitarAux(Grilla, _CantidadFilas, CantidadColumnas, _Visitados, [Fila,Columna],Valor, []):-
-	valorEnCoordenada(Grilla, CantidadColumnas, [Fila,Columna], Valor1),
-	Valor=\=Valor1.
 
 /*
 	coordenadaValida(+CantidadFilas,+CantidadColumnas,+Coordenada)
@@ -451,3 +432,4 @@ coordenadaValida(CantidadFilas,CantidadColumnas,[Fila,Columna]):-
 */
 filtrarLista([_], []).
 filtrarLista([H|T], [H|T]).
+
