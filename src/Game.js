@@ -3,6 +3,7 @@ import PengineClient from './PengineClient';
 import Board from './Board';
 import { joinResult, joinResultAux } from './util';
 import Boost from './Boost';
+import { numberToColor } from './util';
 let pengine;
 
 function Game() {
@@ -36,6 +37,7 @@ function Game() {
         setNumOfColumns(response['NumOfColumns']);
       }
     });
+    
   }
 
   /**
@@ -50,7 +52,9 @@ function Game() {
     console.log(JSON.stringify(newPath));
     setIsActive(true); //Cambia el valor en el return
     setValorPath(joinResult(newPath, grid, numOfColumns));
-   
+    if(newPath.length === 0) {
+      setIsActive(false);
+    }
   }
 
   /**
@@ -74,7 +78,7 @@ function Game() {
           RGrids
         ).
     */
-  
+          
     const gridS = JSON.stringify(grid);
     const pathS = JSON.stringify(path);
     const queryS = "join(" + gridS + "," + numOfColumns + "," + pathS + ", RGrids)";
@@ -87,11 +91,15 @@ function Game() {
         animateEffect(response['RGrids']);
       } else {
         setWaiting(false);
+        
       }
     });
   }
 
   const onButtonClick = () => {
+    if (waiting) {
+      return;
+    }
     const gridS = JSON.stringify(grid);
     const queryS = "powerUp(" + gridS + "," + numOfColumns + ", RGrids)";
 
@@ -113,6 +121,7 @@ function Game() {
    * @param {number[][]} rGrids a sequence of grids.
    */
   function animateEffect(rGrids, time) {
+    
     let time1=time;
     setGrid(rGrids[0]);
     const restRGrids = rGrids.slice(1);
@@ -131,7 +140,7 @@ function Game() {
   return (
     <div className="game">
       <div className="header">
-        <div className={isActive ? 'squareScore' : 'score'}>
+      <div className={isActive ? 'squareScore active' : 'score'} style={isActive ? { backgroundColor: numberToColor(displayValue) } : {}}>
           {displayValue}
         </div>
       </div>

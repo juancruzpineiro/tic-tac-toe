@@ -212,10 +212,6 @@ numeroAleatorio(Numero) :-
 
 
 
-
-
-
-
 /*
 	powerUp(+Grid, +CantidadColumnas, -RGrids)
 	RGrids es la lista de grillas representando el efecto, en etapas, de combinar las celdas de todos los grupos de adyacentes
@@ -283,27 +279,16 @@ agrupar(Lista, Grilla, CantidadColumnas, [GridEnCero,Nuevo]):-
 	abajoDerecha(+ListaCoordenadas, -Resultado)
 		-Resultado es la coordenada más abajo a la derecha de la ListaCoordenadas
 */
-%Caso Base: última coordenada de la lista
-abajoDerecha([[Fila,Columna]], [Fila,Columna]).
-%Casos Recursivos: Buscar la siguiente coordenada y compararla con la anterior
-abajoDerecha([[Fila,Columna]|Resto], Coordenada) :-
-    abajoDerecha(Resto, [Fila2,Columna2]),
-    Fila >= Fila2,
-    Columna >= Columna2,
-    Coordenada = [Fila,Columna].
-abajoDerecha([[Fila,_Columna]|Resto], Coordenada) :-
-	abajoDerecha(Resto, [Fila2,Columna2]),
-	Fila<Fila2,
-	Coordenada=[Fila2,Columna2].
-abajoDerecha([[_Fila,Columna]|Resto], Coordenada) :-
-	abajoDerecha(Resto, [Fila2,Columna2]),
-	Columna<Columna2,
-	Coordenada=[Fila2,Columna2].
-abajoDerecha([[Fila,Columna]|Resto], Coordenada) :-
-	abajoDerecha(Resto, [Fila2,Columna2]),
-	Fila<Fila2,
-	Columna<Columna2,
-	Coordenada=[Fila2,Columna2].
+abajoDerecha([[Fila, Columna]], [Fila, Columna]).
+abajoDerecha([[Fila, Columna] | Resto], Coordenada) :-
+    abajoDerecha(Resto, [Fila2, Columna2]),
+    (Fila > Fila2 ; (Fila = Fila2, Columna > Columna2)),
+    Coordenada = [Fila, Columna].
+abajoDerecha([[Fila, Columna] | Resto], Coordenada) :-
+    abajoDerecha(Resto, [Fila2, Columna2]),
+    (Fila < Fila2 ; (Fila = Fila2, Columna < Columna2)),
+    Coordenada = [Fila2, Columna2].
+
 
 /*
 	clusters(+Grilla, +CantidadFilas, +CantidadColumnas, -Grupos)
@@ -399,7 +384,6 @@ visitarAux([CoordenadaActual|Resto],CantidadFilas,CantidadColumnas, Grilla,Visit
 		-Se evalúa si ya están visitadas, si se encuentran en un borde y si coinciden en el valor.
 	
 */
-
 puedoVisitar(Grilla, CantidadFilas,CantidadColumnas,Visitados,[Fila,Columna],Resultado):-
 	Fila1 is Fila+1,
 	Fila2 is Fila-1,
@@ -460,22 +444,6 @@ coordenadaValida(CantidadFilas,CantidadColumnas,[Fila,Columna]):-
 
 
 /*
-	eliminarRepetidos(+Lista,-Resultado)
-		Resultado es la misma lista, pero sin elementos repetidos.
-
-*/
-%Caso Base: la lista está vacía.
-eliminarRepetidos([], []).
-%Caso Recursivo: El primer elemento se repite.
-eliminarRepetidos([H|T], Resultado) :-
-	member(H, T), 
-	eliminarRepetidos(T, Resultado).
-%Caso recursivo: El primer elemento no se repite.
-eliminarRepetidos([H|T], [H|Resultado]) :-
-	eliminarRepetidos(T, Resultado).
-
-
-/*
 	filtrarLista(+Lista,NuevaLista)
 		-Si la lista tiene un solo elemento, devuelve la lista vacía.
 		-Se usa porque Clusters() devuelve como subconjuntos las coordenadas que tienen un solo elemento,
@@ -483,12 +451,3 @@ eliminarRepetidos([H|T], [H|Resultado]) :-
 */
 filtrarLista([_], []).
 filtrarLista([H|T], [H|T]).
-
-
-
-	
-
-	
-
-
-
