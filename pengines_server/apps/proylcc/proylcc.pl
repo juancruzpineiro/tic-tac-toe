@@ -1,7 +1,8 @@
 :- module(proylcc, 
 	[  
 		join/4,
-		powerUp/3
+		powerUp/3,
+		movidaMaxima/3
 	]).
 
 
@@ -349,7 +350,6 @@ clustersAux([Fila,Columna],[X|Xs],CantidadFilas,CantidadColumnas, Visitados, Res
 visitar([Fila,Columna], CantidadFilas,CantidadColumnas,[X|Xs], Visitados,[[Fila,Columna]|GrupoNuevo]):-
 	%Lista es una lista de coordenadas adyacentes que se pueden visitar
 	puedoVisitar([X|Xs], CantidadFilas, CantidadColumnas,Visitados,[Fila,Columna],Lista),
-
 	visitarAux(Lista,CantidadFilas,CantidadColumnas,[X|Xs], [[Fila,Columna]|Visitados], [],GrupoNuevo).
 
 
@@ -410,7 +410,7 @@ adyacentes([Fila,Columna], Resultado):-
 	Fila2 is Fila-1,
 	Columna1 is Columna+1,
 	Columna2 is Columna-1,
-	Resultado=[[Fila2,Columna],[Fila1,Columna],[Fila,Columna2],[Fila,Columna1],[Fila2,Columna2],[Fila2,Columna1],[Fila1,Columna2],[Fila1,Columna1]].
+	Resultado=[[Fila2,Columna],[Fila2,Columna1],[Fila,Columna1],[Fila1,Columna1],[Fila1,Columna],[Fila1,Columna2],[Fila,Columna2],[Fila2,Columna2]].
 
 
 /*
@@ -433,3 +433,184 @@ coordenadaValida(CantidadFilas,CantidadColumnas,[Fila,Columna]):-
 filtrarLista([_], []).
 filtrarLista([H|T], [H|T]).
 
+
+
+/*
+ * 
+ * 
+ * PROYECTO 2
+ * 
+ * 
+ */
+
+/*
+	caminoMaximo
+*/
+movidaMaxima(Grilla, CantidadColumnas, CaminoMaximo):-
+	/*
+		Paso 1: Consigo la cantidad de Filas:
+	*/
+	length(Grilla, Size),
+	CantidadFilas is Size/CantidadColumnas,
+
+	encontrarCaminos([0,0], Grilla, CantidadFilas, CantidadColumnas, [], Caminos),
+
+	caminoMasGrande(Grilla,CantidadColumnas,Caminos,CaminoMaximo1),
+	reverse(CaminoMaximo1, CaminoMaximo).
+	
+
+
+
+
+/*
+	clusters(+Grilla, +CantidadFilas, +CantidadColumnas, -Grupos)
+		-Grupos es una lista de listas de coordenadas, conteniendo cada uno de los clusters de 
+		ítems iguales.
+*/
+%Caso Base:
+caminoMaximo([],_,_,[]).
+
+%Caso Recursivo:
+% caminoMaximo([X|Xs],CantidadFilas, CantidadColumnas, CaminoMaximo):-
+
+% 	encontrarCaminos([0,0], [X|Xs],CantidadFilas,CantidadColumnas,[], Grupos1),
+% 	delete(Grupos1, [], Grupos),
+% 	caminoMasGrande(Grilla, CantidadColumnas,Grupos, CaminoMaximo).
+
+
+caminoMasGrande(Grilla, CantidadColumnas, Grupos, CaminoMaximo) :-
+	calcularValoresCaminos(Grilla, CantidadColumnas, Grupos, ValoresCaminos),
+	max_list(ValoresCaminos, ValorMaximo),
+	nth1(IndiceMaximo, ValoresCaminos, ValorMaximo),
+	nth1(IndiceMaximo, Grupos, CaminoMaximo).
+	
+calcularValoresCaminos(_, _, [], []).
+calcularValoresCaminos(Grilla, CantidadColumnas, [Camino|Resto], [Valor|ValoresResto]) :-
+	% length(Camino, CantidadCoordenadas),
+	calcularUltimoValor(Grilla, CantidadColumnas, Camino, Valor),
+	calcularValoresCaminos(Grilla, CantidadColumnas, Resto,ValoresResto).
+
+
+/*
+	encontrarCaminos(+Coordenada, +Grilla, +CantidadFilas, +CantidadColumnas, +Visitados, -Resultado)
+		-Resultado es la lista de todos los clusters en la grilla empezando por la coordenada dada.
+		-Mantiene una lista visitados, que actualiza para verificar las siguientes coordenadas.
+*/
+%Caso Base:Pasé por todas las filas.
+encontrarCaminos([CantidadFilas,_], _, CantidadFilas,_,_, []).
+
+%Caso Recursivo: La coordenada no fue visitada y es válida.
+encontrarCaminos([Fila,Columna],[X|Xs],CantidadFilas,CantidadColumnas, Visitados, [ClusterLimpio|Resultado]):-
+	not(member([Fila,Columna],Visitados)),
+	coordenadaValida(CantidadFilas, CantidadColumnas,[Fila,Columna]),
+
+	visitarCamino([Fila,Columna], CantidadFilas,CantidadColumnas,[X|Xs],Cluster),
+	%El nuevo Cluster se marca como visitado porque todas sus coordenadas ya fueron visitadas.
+	append(Visitados,Cluster,Visitados1),
+	filtrarLista(Cluster, ClusterLimpio), %Si el Cluster es de una sola coordenada, lo dejamos vacío.
+
+	ColumnaSiguiente is Columna+1,
+	encontrarCaminos([Fila,ColumnaSiguiente],[X|Xs],CantidadFilas,CantidadColumnas,Visitados1,Resultado).
+
+
+% Caso Recursivo: La coordenada es válida pero fue Visitada previamente.
+encontrarCaminos([Fila,Columna],[X|Xs],CantidadFilas,CantidadColumnas, Visitados, Resultado):-
+	member([Fila,Columna],Visitados),
+	coordenadaValida(CantidadFilas, CantidadColumnas,[Fila,Columna]),
+	
+	ColumnaSiguiente is Columna+1,
+	encontrarCaminos([Fila,ColumnaSiguiente],[X|Xs],CantidadFilas,CantidadColumnas,Visitados,Resultado).
+
+% Caso Recursivo: La columna no es válida, empiezo por la siguiente fila.
+encontrarCaminos([Fila,Columna],[X|Xs],CantidadFilas,CantidadColumnas, Visitados, Resultado):-
+	not(coordenadaValida(CantidadFilas, CantidadColumnas,[Fila,Columna])),
+	Fila1 is Fila+1,
+	encontrarCaminos([Fila1,0],[X|Xs],CantidadFilas,CantidadColumnas, Visitados, Resultado).
+
+
+/*
+	visitarCamino(+Coordenada, +CantidadFilas, +CantidadColumnas, +Grilla, +ListaVisitados, -Cluster)
+		-Cluster es una lista de coordenadas adyacentes con el mismo valor.
+		-Marca como visitados los nodos a los que se puede mover y los agrega al cluster
+		-NO actualiza la lista de visitados, sino que se debe usar Append a visitados con el Cluster
+		al salir de la sentencia.
+*/
+visitarCamino([Fila,Columna], CantidadFilas,CantidadColumnas,[X|Xs],Maximo):-
+	%Lista es una lista de coordenadas adyacentes que se pueden visitar
+	puedoVisitar([X|Xs], CantidadFilas, CantidadColumnas,[],[Fila,Columna],Lista),
+	visitarCaminoAux(Lista,CantidadFilas,CantidadColumnas,[X|Xs],[[Fila,Columna]], [], ColeccionFinal),
+	caminoMasGrande([X|Xs], CantidadColumnas, ColeccionFinal, Maximo).
+
+
+
+/*
+	visitarAux(+ListaCoordenadas, +CantidadFilas, +CantidadColumnas, +Grilla, +Visitados, +GrupoActual,GrupoNuevo)
+		- GrupoNuevo es el grupo formado por las coordenadas adyacentes del mismo valor.
+		- Se inicia con GrupoActual vacío.
+
+*/
+%Caso base la lista a visitar está vacía:
+visitarCaminoAux([],_,_,_,Grupo,Coleccion,[Grupo|Coleccion]).
+	
+
+
+%Caso Recursivo: el nodo no fue visitado.
+visitarCaminoAux([CoordenadaActual|Resto],CantidadFilas,CantidadColumnas, Grilla,Grupo,Coleccion, ColeccionFinal):-
+	not(member(CoordenadaActual, Grupo)),
+	%Primero Visito la vecindad de la CoordenadaActual y  marco como visitados 
+	puedoVisitarCamino(Grilla, CantidadFilas, CantidadColumnas,Grupo,CoordenadaActual,Lista),
+
+
+	visitarCaminoAux(Lista,CantidadFilas,CantidadColumnas,Grilla, [CoordenadaActual|Grupo], Coleccion, ColeccionNueva1),
+	
+
+	%Después visito el resto de la lista
+	visitarCaminoAux(Resto,CantidadFilas,CantidadColumnas,Grilla, Grupo, ColeccionNueva1,ColeccionFinal).
+
+
+
+% Caso Recursivo: La coordenada ya fue visitada, sigo visitando las otras.
+visitarCaminoAux([CoordenadaActual|Resto],CantidadFilas,CantidadColumnas, Grilla,Grupo, Coleccion, ColeccionFinal):-
+	member(CoordenadaActual, Grupo),
+	visitarCaminoAux(Resto,CantidadFilas,CantidadColumnas, Grilla,Grupo,Coleccion,ColeccionFinal).
+
+
+
+/*s
+	puedoVisitarCamino(+Grilla, +CantidadFilas, +CantidadColumnas, +Visitados, +Coordenada, -Resultado)
+		-Resultado es la lista de las coordenadas adyacentes que puedo visitar (Para el Proyecto 2).
+		-Se evalúa si ya están visitadas, si se encuentran en un borde y si coinciden en el valor.
+*/
+puedoVisitarCamino(Grilla, CantidadFilas,CantidadColumnas,Grupo,[Fila,Columna],Resultado):-
+	adyacentes([Fila,Columna],Adyacentes),	
+	valorEnCoordenada(Grilla, CantidadColumnas, [Fila,Columna], Valor),
+	findall(
+		[Fil,Col],
+		(
+			member([Fil,Col],Adyacentes), 
+			puedoVisitarCaminoAux(Grilla, CantidadFilas, CantidadColumnas, Grupo, [Fil,Col], Valor)
+		), 
+		Resultado
+	).
+
+
+%Devuelve True si La coordenada no está, visitada, si no se encuentra en un borde y si coincide en el valor.
+puedoVisitarCaminoAux(Grilla, CantidadFilas, CantidadColumnas, Grupo, [Fila,Columna],Valor):-
+	coordenadaValida(CantidadFilas,CantidadColumnas,[Fila,Columna]),
+	not(member([Fila,Columna], Grupo)),
+	valorEnCoordenada(Grilla, CantidadColumnas, [Fila,Columna], Valor1),
+	(
+		Valor=:=Valor1;
+		(
+			proximaPotenciaDe2(Valor, Siguiente),
+			Valor1=:=Siguiente
+		)
+	).
+
+
+/*
+    proximaPotenciaDe2(+NumeroPotenciaDe2, -ProximaPotenciaDe2)
+        ProximaPotenciaDe2 es la siguiente potencia de 2 mayor a NumeroPotenciaDe2.
+*/
+proximaPotenciaDe2(NumeroPotenciaDe2, ProximaPotenciaDe2) :-
+	ProximaPotenciaDe2 is NumeroPotenciaDe2 * 2.

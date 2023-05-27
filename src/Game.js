@@ -4,6 +4,7 @@ import Board from './Board';
 import { joinResult, joinResultAux } from './util';
 import Boost from './Boost';
 import { numberToColor } from './util';
+import Maximo from './Maximo';
 let pengine;
 
 function Game() {
@@ -116,6 +117,26 @@ function Game() {
     });
   }
 
+  const onButtonClickMaximo = () => {
+    if (waiting) {
+      return;
+    }
+    const gridS = JSON.stringify(grid);
+    const queryS = "movidaMaxima(" + gridS + "," + numOfColumns + ", RGrids)";
+
+    setWaiting(true);
+    setIsActive(false);
+    pengine.query(queryS, (success, response) => {
+      if (success) {
+
+        setPath(response['RGrids']);
+       // animateEffect(response['RGrids']);
+      } else {
+        setWaiting(false);
+      }
+    });
+  }
+
   /**
    * Displays each grid of the sequence as the current grid in 1sec intervals.
    * @param {number[][]} rGrids a sequence of grids.
@@ -146,7 +167,7 @@ function Game() {
       </div>
       <div className="botonera">
         <Boost onClick={onButtonClick} />
-        <Boost onClick={onButtonClick} />
+        <Maximo onClick={onButtonClickMaximo} />
         <Boost onClick={onButtonClick} />
       </div>
       
