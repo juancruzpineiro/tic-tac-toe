@@ -5,6 +5,8 @@ import { joinResult, joinResultAux } from './util';
 import Boost from './Boost';
 import { numberToColor } from './util';
 import Maximo from './Maximo';
+import MaximoAdyacente from './MaximoAdyacente';
+import Loading from './Loading';
 let pengine;
 
 function Game() {
@@ -117,6 +119,28 @@ function Game() {
     });
   }
 
+  const onButtonClickMaximoAdyacente = () => {
+    if (waiting) {
+      return;
+    }
+    const gridS = JSON.stringify(grid);
+    const queryS = "maximoAdyacente(" + gridS + "," + numOfColumns + ", RGrids)";
+
+    setWaiting(true);
+    setIsActive(false);
+    pengine.query(queryS, (success, response) => {
+      if (success) {
+        setPath(response['RGrids']);
+        console.log(JSON.stringify(response['RGrids']));
+        setIsActive(true); //Cambia el valor en el return
+        setValorPath(joinResult(response['RGrids'], grid, numOfColumns));
+        setWaiting(false);
+      } else {
+        setWaiting(false);
+      }
+    });
+  }
+
   const onButtonClickMaximo = () => {
     if (waiting) {
       return;
@@ -128,9 +152,12 @@ function Game() {
     setIsActive(false);
     pengine.query(queryS, (success, response) => {
       if (success) {
-
+        
         setPath(response['RGrids']);
-       // animateEffect(response['RGrids']);
+        console.log(JSON.stringify(response['RGrids']));
+        setIsActive(true); //Cambia el valor en el return
+        setValorPath(joinResult(response['RGrids'], grid, numOfColumns));
+        setWaiting(false);
       } else {
         setWaiting(false);
       }
@@ -160,6 +187,7 @@ function Game() {
   }
   return (
     <div className="game">
+       {waiting && <Loading />} 
       <div className="header">
         <div className={isActive ? 'squareScore active' : 'score'} style={isActive ? { backgroundColor: numberToColor(displayValue) } : {}}>
             {displayValue}
@@ -168,7 +196,7 @@ function Game() {
       <div className="botonera">
         <Boost onClick={onButtonClick} />
         <Maximo onClick={onButtonClickMaximo} />
-        <Boost onClick={onButtonClick} />
+        <MaximoAdyacente onClick={onButtonClickMaximoAdyacente} />
       </div>
       
       <Board

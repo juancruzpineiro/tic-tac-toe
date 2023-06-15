@@ -186,3 +186,44 @@ button:hover::before {
 button:active {
   background: linear-gradient(32deg,#03a9f4,#f441a5,#ffeb3b,#03a9f4);
 }
+
+/* .loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  z-index: 9999;
+} */
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+}
+
+.loader {
+  width: 60px;
+  height: 60px;
+  border: 10px solid #1cd42550;
+  border-top-color: #1cd425;
+  animation: spin013151 1s linear infinite;
+  border-radius: 100%;
+}
+
+@keyframes spin013151 {
+  to {
+    transform: rotate(360deg);
+  }
+}
