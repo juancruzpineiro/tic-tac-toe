@@ -642,12 +642,14 @@ maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, [Actual|Resto], Maxim
 	
 	% EncontrarTodosCaminos/5 devuelve también caminos de un solo elemento,
 	% por lo que los descarto antes.
-	length(CaminoActual,LargoActual),
+	length(CaminoActual,LargoActual),	
 	LargoActual>1,
+
+
 	calcularUltimo(Grilla, CantidadColumnas, CaminoActual, ValorActual),
 	calcularUltimo(Grilla, CantidadColumnas, MaximoActual, ValorMaximoActual),
-	% Verifico que el actual sea más grande.
 	
+	% Verifico que el actual sea más grande.
 	ValorActual>ValorMaximoActual,
 	% Ejecuto en la grilla el camino.
 	joinVirtual(Grilla, CantidadColumnas, CaminoActual, GrillaProcesada, CoordenadaNueva),
@@ -665,10 +667,9 @@ maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, [Actual|Resto], Maxim
 
 % Caso recursivo: El valor de Actual es menor o igual que el maximo anterior. 
 maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, [CaminoActual|Resto], MaximoActual,CaminoMaximo):-
-	% reverse(Actual,CaminoActual),
 	calcularUltimo(Grilla, CantidadColumnas, CaminoActual, ValorActual),
 	calcularUltimo(Grilla, CantidadColumnas, MaximoActual, ValorMaximoActual),
-	not(ValorActual>ValorMaximoActual),!,
+	not(ValorActual>ValorMaximoActual),
 	maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, Resto, MaximoActual, CaminoMaximo),!.
 
 % Caso recursivo: El camino actual no tiene vecinos post-ejecución.
@@ -677,7 +678,7 @@ maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, [Actual|Resto], Maxim
 	joinVirtual(Grilla, CantidadColumnas, CaminoActual, GrillaProcesada, CoordenadaNueva),
 	puedoVisitar(GrillaProcesada, CantidadFilas,CantidadColumnas,[],CoordenadaNueva,Vecinos),
 	length(Vecinos,CantidadVecinos),
-	not(CantidadVecinos=\=0),!,
+	not(CantidadVecinos=\=0),
 	maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, Resto, MaximoActual, CaminoMaximo),!.
 
 
@@ -734,7 +735,7 @@ joinVirtual(Grid, NumOfColumns, Path, RGrid, [NumeroFilaNuevo,Columna]):-
 	calcularUltimo(Grid, NumOfColumns, Path, PrimerValor),
 	reemplazarValorCoordenada(GridEnCero, NumOfColumns, [Fila,Columna], PrimerValor, GridReemplazado),
 	
-	% Aíslo la columna sóla y consigo a qué fila bajaría post-gravedad.
+	% Aíslo la columna y consigo a qué fila bajaría post-gravedad.
 	conseguirColumna(GridReemplazado, CantidadFilas,NumOfColumns,0, Columna, ColumnaAislada),
 	movimientoCoordenada(ColumnaAislada, Fila, NumeroFilaNuevo),
 	
