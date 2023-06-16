@@ -620,12 +620,12 @@ maximoAdyacente(Grilla, CantidadColumnas, CaminoMaximo):-
 		Paso 2: Consigo TODOS los caminos posibles (Incluyendo caminos parciales).
 	*/
 	encontrarTodosCaminos([0,0], Grilla, CantidadFilas, CantidadColumnas, Caminos),!,
-
+	max_list(Grilla, ValorMaximo),
 
 	/*
 		Paso 3: Consigo el máximo camino que cumpla con la condición.
 	*/
-	maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, Caminos ,[],CaminoMaximo).
+	maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, Caminos,ValorMaximo,[],CaminoMaximo).
 
 
 /*
@@ -634,10 +634,10 @@ maximoAdyacente(Grilla, CantidadColumnas, CaminoMaximo):-
 		-Recorre linealmente los caminos y se queda con el que cumpla la condición.
 */
 % Caso Base: Terminé la lista
-maximoAdyacenteAux(_, _,_, [], Actual, Actual):-!.
+maximoAdyacenteAux(_, _,_, [],_, Actual, Actual):-!.
 
 % Caso Recursivo: El camino actual es más grande que el anterior y cumple con las condiciones.
-maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, [Actual|Resto], MaximoActual, CaminoMaximo):-
+maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, [Actual|Resto],ValorTecho, MaximoActual, CaminoMaximo):-
 	reverse(Actual,CaminoActual),
 	
 	% EncontrarTodosCaminos/5 devuelve también caminos de un solo elemento,
@@ -649,37 +649,41 @@ maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, [Actual|Resto], Maxim
 	calcularUltimo(Grilla, CantidadColumnas, CaminoActual, ValorActual),
 	calcularUltimo(Grilla, CantidadColumnas, MaximoActual, ValorMaximoActual),
 	
-	% Verifico que el actual sea más grande.
+	% Verifico que el Valor actual no se más grande que el techo y que actual sea más grande
+	% que el camino máximo anterior
+	ValorActual=<ValorTecho,
 	ValorActual>ValorMaximoActual,
+	
 	% Ejecuto en la grilla el camino.
 	joinVirtual(Grilla, CantidadColumnas, CaminoActual, GrillaProcesada, CoordenadaNueva),
 	% Verifico que tenga adyacentes.
 	puedoVisitar(GrillaProcesada, CantidadFilas,CantidadColumnas,[],CoordenadaNueva,Vecinos),
 	length(Vecinos,CantidadVecinos),
 	(CantidadVecinos=\=0),!,
-	maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, Resto, CaminoActual, CaminoMaximo),!.
+	maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, Resto,ValorTecho, CaminoActual, CaminoMaximo),!.
 	
 % Caso Recursivo: Actual es un camino de un solo elemento
-maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, [Actual|Resto], MaximoActual,CaminoMaximo):-
+maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, [Actual|Resto],ValorTecho, MaximoActual,CaminoMaximo):-
 	length(Actual,LargoActual),
 	not(LargoActual>1),!,
-	maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, Resto, MaximoActual, CaminoMaximo),!.
+	maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, Resto,ValorTecho, MaximoActual, CaminoMaximo),!.
 
-% Caso recursivo: El valor de Actual es menor o igual que el maximo anterior. 
-maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, [CaminoActual|Resto], MaximoActual,CaminoMaximo):-
+% Caso recursivo: El valor de Actual es menor o igual que el maximo anterior
+% o es mayor que la celda más grande de la grilla.
+maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, [CaminoActual|Resto],ValorTecho, MaximoActual,CaminoMaximo):-
 	calcularUltimo(Grilla, CantidadColumnas, CaminoActual, ValorActual),
 	calcularUltimo(Grilla, CantidadColumnas, MaximoActual, ValorMaximoActual),
-	not(ValorActual>ValorMaximoActual),
-	maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, Resto, MaximoActual, CaminoMaximo),!.
+	(not(ValorActual=<ValorTecho) ; not(ValorActual>ValorMaximoActual)),
+	maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, Resto,ValorTecho, MaximoActual, CaminoMaximo),!.
 
 % Caso recursivo: El camino actual no tiene vecinos post-ejecución.
-maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, [Actual|Resto], MaximoActual,CaminoMaximo):-
+maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, [Actual|Resto], ValorTecho,MaximoActual,CaminoMaximo):-
 	reverse(Actual,CaminoActual),
 	joinVirtual(Grilla, CantidadColumnas, CaminoActual, GrillaProcesada, CoordenadaNueva),
 	puedoVisitar(GrillaProcesada, CantidadFilas,CantidadColumnas,[],CoordenadaNueva,Vecinos),
 	length(Vecinos,CantidadVecinos),
 	not(CantidadVecinos=\=0),
-	maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, Resto, MaximoActual, CaminoMaximo),!.
+	maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, Resto,ValorTecho, MaximoActual, CaminoMaximo),!.
 
 
 /*
