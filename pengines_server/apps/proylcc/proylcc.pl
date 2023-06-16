@@ -6,6 +6,14 @@
 		maximoAdyacente/3
 	]).
 
+/*
+ * 
+ * 
+ *		PROYECTO 1
+ * 
+ * 
+ */
+
 
 /*
  * join(+Grid, +NumOfColumns, +Path, -RGrids) 
@@ -406,7 +414,10 @@ puedoVisitarAux(Grilla, CantidadFilas, CantidadColumnas, Visitados, [Fila,Column
 	Valor=:=Valor1.
 
 
-/**/
+/*
+	adyacentes(+Coordenada, -Adyacentes)
+		-Adyacentes es la Lista de coordenadas adyacentes.
+*/
 adyacentes([Fila,Columna], Resultado):-
 	Fila1 is Fila+1,
 	Fila2 is Fila-1,
@@ -425,7 +436,6 @@ coordenadaValida(CantidadFilas,CantidadColumnas,[Fila,Columna]):-
 	Fila<CantidadFilas,
 	Columna<CantidadColumnas.
 
-
 /*
 	filtrarLista(+Lista,NuevaLista)
 		-Si la lista tiene un solo elemento, devuelve la lista vacía.
@@ -436,19 +446,18 @@ filtrarLista([_], []).
 filtrarLista([H|T], [H|T]).
 
 
-
-
 /*
  * 
  * 
- * PROYECTO 2
+ *		PROYECTO 2
  * 
  * 
  */
 
+
 /*
 	caminoMaximo(+Grilla, +CantidadColumnas, + CaminoMaximo)
-		-CaminoMaximo es el Camino con el mayor valor posible
+		-CaminoMaximo es el Camino con el mayor valor posible. 
 */
 movidaMaxima(Grilla, CantidadColumnas, CaminoMaximo):-
 	/*
@@ -457,18 +466,37 @@ movidaMaxima(Grilla, CantidadColumnas, CaminoMaximo):-
 	length(Grilla, Size),
 	CantidadFilas is Size/CantidadColumnas,
 
+	/*
+		Paso 2: Encuentro el camino más grande por cada coordenada
+	*/
 	encontrarCaminos([0,0], Grilla, CantidadFilas, CantidadColumnas, Caminos),
 
+	/*
+		Paso 3: Encuentro el camino más grande entre todos.
+	*/
 	caminoMasGrande(Grilla,CantidadColumnas,Caminos,CaminoMaximo1),
+
+	/*
+		Paso 4: Invierto el camino encontrado.
+	*/
 	reverse(CaminoMaximo1, CaminoMaximo).
 	
 
+/*
+	CaminoMasGrande(+Grilla, +CantidadColumnas, +Grupos, -CaminoMaximo)
+		-CaminoMáximo es el camino con mayor valor dentro de los Grupos.
+*/
 caminoMasGrande(Grilla, CantidadColumnas, Grupos, CaminoMaximo) :-
 	calcularValoresCaminos(Grilla, CantidadColumnas, Grupos, ValoresCaminos),
 	max_list(ValoresCaminos, ValorMaximo),
 	nth1(IndiceMaximo, ValoresCaminos, ValorMaximo),
 	nth1(IndiceMaximo, Grupos, CaminoMaximo).
 	
+/*
+	calcularValoresCaminos(+Grilla, +CantidadColumnas, +Caminos, -Valores)
+		-Valores es un arreglo de los valores de los caminos en el mismo orden del arreglo de caminos.
+		Los valores se encuentran en el mismo índice que el arreglo original de Caminos.
+*/
 calcularValoresCaminos(_, _, [], []).
 calcularValoresCaminos(Grilla, CantidadColumnas, [Camino|Resto], [Valor|ValoresResto]) :-
 	calcularUltimoValor(Grilla, CantidadColumnas, Camino, Valor),
@@ -500,11 +528,9 @@ encontrarCaminos([Fila,Columna],[X|Xs],CantidadFilas,CantidadColumnas, Resultado
 
 
 /*
-	visitarCamino(+Coordenada, +CantidadFilas, +CantidadColumnas, +Grilla, +ListaVisitados, -Cluster)
-		-Cluster es una lista de coordenadas adyacentes con el mismo valor.
-		-Marca como visitados los nodos a los que se puede mover y los agrega al cluster
-		-NO actualiza la lista de visitados, sino que se debe usar Append a visitados con el Cluster
-		al salir de la sentencia.
+	visitarCamino(+Coordenada, +CantidadFilas, +CantidadColumnas, +Grilla, +ListaVisitados, -Maximo)
+		-Maximo es el camino más grande para la coordenada dada.
+		-Análogo a la búsqueda de clusters, sin lista de visitados
 */
 visitarCamino([Fila,Columna], CantidadFilas,CantidadColumnas,[X|Xs],Maximo):-
 	%Lista es una lista de coordenadas adyacentes que se pueden visitar
@@ -514,9 +540,7 @@ visitarCamino([Fila,Columna], CantidadFilas,CantidadColumnas,[X|Xs],Maximo):-
 
 /*
 	visitarCaminoAux(+ListaCoordenadas, +CantidadFilas, +CantidadColumnas, +Grilla, +Visitados,GrupoNuevo)
-		- GrupoNuevo es el grupo formado por las coordenadas adyacentes del mismo valor.
-		- Se inicia con GrupoActual vacío.
-
+		- Análogo a la búsqueda de Grupos, pero al final guarda el grupo como un camino aparte.
 */
 %Caso base la lista a visitar está vacía:
 visitarCaminoAux([],_,_,_,Grupo,Coleccion,[Grupo|Coleccion]).
@@ -524,10 +548,14 @@ visitarCaminoAux([],_,_,_,Grupo,Coleccion,[Grupo|Coleccion]).
 %Caso Recursivo: el nodo no fue visitado.
 visitarCaminoAux([CoordenadaActual|Resto],CantidadFilas,CantidadColumnas, Grilla,Grupo,Coleccion, ColeccionFinal):-
 	not(member(CoordenadaActual, Grupo)),
+
+	% Analizo los adyacentes compatibles
 	puedoVisitarCamino(Grilla, CantidadFilas, CantidadColumnas,Grupo,CoordenadaActual,Lista),
 
+	% Visito los adyacentes.
 	visitarCaminoAux(Lista,CantidadFilas,CantidadColumnas,Grilla, [CoordenadaActual|Grupo], Coleccion, ColeccionNueva1),
 
+	% Visito los restantes.
 	visitarCaminoAux(Resto,CantidadFilas,CantidadColumnas,Grilla, Grupo, ColeccionNueva1,ColeccionFinal).
 
 
@@ -539,7 +567,8 @@ visitarCaminoAux([CoordenadaActual|Resto],CantidadFilas,CantidadColumnas, Grilla
 /*
 	puedoVisitarCamino(+Grilla, +CantidadFilas, +CantidadColumnas, +Visitados, +Coordenada, -Resultado)
 		-Resultado es la lista de las coordenadas adyacentes que puedo visitar (Para el Proyecto 2).
-		-Se evalúa si ya están visitadas, si se encuentran en un borde y si coinciden en el valor.
+		-Análgo a la implementación del proyecto 1, pero teniendo en cuenta el valor siguiente.
+		-Se evalúa si ya están visitadas, si se encuentran en un borde y si el valor es compatible.
 */
 puedoVisitarCamino(Grilla, CantidadFilas,CantidadColumnas,Grupo,[Fila,Columna],Resultado):-
 	adyacentes([Fila,Columna],Adyacentes),	
@@ -553,7 +582,7 @@ puedoVisitarCamino(Grilla, CantidadFilas,CantidadColumnas,Grupo,[Fila,Columna],R
 		Resultado
 	).
 
-%Devuelve True si La coordenada no está, visitada, si no se encuentra en un borde y si coincide en el valor.
+%Devuelve True si La coordenada no está, visitada, si no se encuentra en un borde y si el valor es copatible.
 puedoVisitarCaminoAux(Grilla, CantidadFilas, CantidadColumnas, Grupo, [Fila,Columna],Valor):-
 	coordenadaValida(CantidadFilas,CantidadColumnas,[Fila,Columna]),
 	not(member([Fila,Columna], Grupo)),
@@ -575,51 +604,74 @@ proximaPotenciaDe2(NumeroPotenciaDe2, ProximaPotenciaDe2) :-
 
 
 
-
-
+/*
+	maximoAdyacente(+Grilla, +CantidadColumnas, -CaminoMaximo)
+		-CaminoMaximo es el camino más grande que termina, post-ejecución,
+		con una celda adyacente del mismo valor que el resultado.
+*/
 maximoAdyacente(Grilla, CantidadColumnas, CaminoMaximo):-
+	/*
+		Paso 1: Consigo la cantidad de Filas
+	*/
 	length(Grilla, Size),
 	CantidadFilas is Size/CantidadColumnas,
 	
-	encontrarTodosCaminos([0,0], Grilla, CantidadFilas, CantidadColumnas, Caminos),
-	limpiarLista(Caminos,Caminos1),!,
-	maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, Caminos1 ,[],CaminoMaximo).
+	/*
+		Paso 2: Consigo TODOS los caminos posibles (Incluyendo caminos parciales).
+	*/
+	encontrarTodosCaminos([0,0], Grilla, CantidadFilas, CantidadColumnas, Caminos),!,
 
+
+	/*
+		Paso 3: Consigo el máximo camino que cumpla con la condición.
+	*/
+	maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, Caminos ,[],CaminoMaximo).
+
+
+/*
+	maximoAdyacenteAux(+Grilla, +CantidadFilas, +CantidadColumnas, +Caminos, +MaximoActual, -CaminoMaximo)
+		-CaminoMaximo es el camino más grande que, post-ejecución, cuente con una celda de su mismo valor.
+		-Recorre linealmente los caminos y se queda con el que cumpla la condición.
+*/
+% Caso Base: Terminé la lista
 maximoAdyacenteAux(_, _,_, [], Actual, Actual):-!.
 
-% Caso: Es mas grande y tiene vecinos.
+% Caso Recursivo: El camino actual es más grande que el anterior y cumple con las condiciones.
 maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, [Actual|Resto], MaximoActual, CaminoMaximo):-
 	reverse(Actual,CaminoActual),
+	
+	% EncontrarTodosCaminos/5 devuelve también caminos de un solo elemento,
+	% por lo que los descarto antes.
 	length(CaminoActual,LargoActual),
 	LargoActual>1,
-	
 	calcularUltimo(Grilla, CantidadColumnas, CaminoActual, ValorActual),
 	calcularUltimo(Grilla, CantidadColumnas, MaximoActual, ValorMaximoActual),
+	% Verifico que el actual sea más grande.
 	
 	ValorActual>ValorMaximoActual,
-
+	% Ejecuto en la grilla el camino.
 	joinVirtual(Grilla, CantidadColumnas, CaminoActual, GrillaProcesada, CoordenadaNueva),
-
+	% Verifico que tenga adyacentes.
 	puedoVisitar(GrillaProcesada, CantidadFilas,CantidadColumnas,[],CoordenadaNueva,Vecinos),
-
 	length(Vecinos,CantidadVecinos),
-
 	(CantidadVecinos=\=0),!,
 	maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, Resto, CaminoActual, CaminoMaximo),!.
 	
-
+% Caso Recursivo: Actual es un camino de un solo elemento
 maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, [Actual|Resto], MaximoActual,CaminoMaximo):-
 	length(Actual,LargoActual),
 	not(LargoActual>1),!,
 	maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, Resto, MaximoActual, CaminoMaximo),!.
 
-maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, [Actual|Resto], MaximoActual,CaminoMaximo):-
-	reverse(Actual,CaminoActual),
+% Caso recursivo: El valor de Actual es menor o igual que el maximo anterior. 
+maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, [CaminoActual|Resto], MaximoActual,CaminoMaximo):-
+	% reverse(Actual,CaminoActual),
 	calcularUltimo(Grilla, CantidadColumnas, CaminoActual, ValorActual),
 	calcularUltimo(Grilla, CantidadColumnas, MaximoActual, ValorMaximoActual),
 	not(ValorActual>ValorMaximoActual),!,
 	maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, Resto, MaximoActual, CaminoMaximo),!.
 
+% Caso recursivo: El camino actual no tiene vecinos post-ejecución.
 maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, [Actual|Resto], MaximoActual,CaminoMaximo):-
 	reverse(Actual,CaminoActual),
 	joinVirtual(Grilla, CantidadColumnas, CaminoActual, GrillaProcesada, CoordenadaNueva),
@@ -629,14 +681,14 @@ maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, [Actual|Resto], Maxim
 	maximoAdyacenteAux(Grilla, CantidadFilas,CantidadColumnas, Resto, MaximoActual, CaminoMaximo),!.
 
 
-
 /*
 	encontrarTodosCaminos(+Coordenada, +Grilla, +CantidadFilas, +CantidadColumnas, -Resultado)
-		-Resultado es la lista de todos los caminos máximos para cada coordenada. 
+		-Resultado es la lista de todos los caminos posibles.
+		-Itera sobre cada coordenada, y encuentra la colección de todos los caminos posibles.
+		-Análogo a encontrarCaminos/5, pero no busca el camino mayor por coordenada.
 */
 %Caso Base:Pasé por todas las filas.
 encontrarTodosCaminos([CantidadFilas,_], _, CantidadFilas,_, []).
-
 %Caso Recursivo: La coordenada no fue visitada y es válida.
 encontrarTodosCaminos([Fila,Columna],[X|Xs],CantidadFilas,CantidadColumnas, Res):-
 	coordenadaValida(CantidadFilas, CantidadColumnas,[Fila,Columna]),
@@ -647,7 +699,6 @@ encontrarTodosCaminos([Fila,Columna],[X|Xs],CantidadFilas,CantidadColumnas, Res)
 	encontrarTodosCaminos([Fila,ColumnaSiguiente],[X|Xs],CantidadFilas,CantidadColumnas,Resultado),
 
 	append(ClusterLimpio, Resultado, Res).
-
 % Caso Recursivo: La columna no es válida, empiezo por la siguiente fila.
 encontrarTodosCaminos([Fila,Columna],[X|Xs],CantidadFilas,CantidadColumnas, Resultado):-
 	not(coordenadaValida(CantidadFilas, CantidadColumnas,[Fila,Columna])),
@@ -656,50 +707,61 @@ encontrarTodosCaminos([Fila,Columna],[X|Xs],CantidadFilas,CantidadColumnas, Resu
 
 
 /*
-	visitarCamino(+Coordenada, +CantidadFilas, +CantidadColumnas, +Grilla, +ListaVisitados, -Cluster)
-		-Cluster es una lista de coordenadas adyacentes con el mismo valor.
-		-Marca como visitados los nodos a los que se puede mover y los agrega al cluster
-		-NO actualiza la lista de visitados, sino que se debe usar Append a visitados con el Cluster
-		al salir de la sentencia.
+	visitarTodosCaminos(+Coordenada, +CantidadFilas, +CantidadColumnas, +Grilla, +ListaVisitados, -ColeccionFinal)
+		-ColeccionFinal es la lista de todos los caminos posibles desde la coordenada dada.
+		-Análogo a visitarCaminos, pero no devuelve el más grande sino una colección de todos.
+		-Reusa visitarCaminoAux.
 */
 visitarTodosCaminos([Fila,Columna], CantidadFilas,CantidadColumnas,[X|Xs],ColeccionFinal):-
-	%Lista es una lista de coordenadas adyacentes que se pueden visitar
 	puedoVisitar([X|Xs], CantidadFilas, CantidadColumnas,[],[Fila,Columna],Lista),
 	visitarCaminoAux(Lista,CantidadFilas,CantidadColumnas,[X|Xs],[[Fila,Columna]], [], ColeccionFinal).
-	
-	% caminoMasGrande([X|Xs], CantidadColumnas, ColeccionFinal, Maximo)
+
 
 /*
-	joinVirtual()
-		-Análogo a join/4, pero tiene que tener rastro de la última coordenada (Hacia qué coordenada baja).
+	joinVirtual(+Grid, +NumOFColumns, +Path, +RGrid, -CoordenadaNueva)
+		-Análogo a join/4, pero tiene que tener rastro de la última coordenada del camino.
+		-No reemplaza los valores en 0 después de aplicar la gravedad.
 */
 joinVirtual(Grid, NumOfColumns, Path, RGrid, [NumeroFilaNuevo,Columna]):-
 	length(Grid, Size),
 	CantidadFilas is Size/NumOfColumns,
+	
+	% Consigo la grilla con los Ceros
 	reemplazarCeros(Grid,NumOfColumns, Path, GridEnCero),	
-
 	last(Path, [Fila,Columna]),
 
+	% Calculo y reemplazo el último valor.
 	calcularUltimo(Grid, NumOfColumns, Path, PrimerValor),
 	reemplazarValorCoordenada(GridEnCero, NumOfColumns, [Fila,Columna], PrimerValor, GridReemplazado),
 	
+	% Aíslo la columna sóla y consigo a qué fila bajaría post-gravedad.
 	conseguirColumna(GridReemplazado, CantidadFilas,NumOfColumns,0, Columna, ColumnaAislada),
 	movimientoCoordenada(ColumnaAislada, Fila, NumeroFilaNuevo),
 	
 	iniciarGravedad(GridReemplazado, NumOfColumns, CantidadFilas, RGrid),!.
 
 /*
-	Devuelve en qué fila va a terminar la columna depués de caer
+	movimientoCoordenada(+Columna, +FilaCoordenada, -FilaCoordenadaNueva)
+		- FilaCoordenadaNueva es la fila a la que va a caer la coordenada.
+		- Calcula la cantidad de ceros después de la fila, que van a ser la cantidad
+		de movimientos abajo.
 */
 movimientoCoordenada(Columna, FilaCoordenada, FilaCoordenadaNueva):-
 	cerosDespues(Columna,FilaCoordenada, Ceros),
 	FilaCoordenadaNueva is FilaCoordenada + Ceros.
 
+/*
+	cerosDespues(+Columna, +Indice, -Ceros)
+		-Ceros es la cantidad de ceros en el arreglo posteriores al índice (indice-0).
+*/
+% Caso base: Final de la lista
 cerosDespues([], _, 0).
+% Caso Recursivo: Avanzo hasta el índice.
 cerosDespues([_|Resto], Indice, Ceros) :-
     Indice > 0,
     NuevoIndice is Indice - 1,
     cerosDespues(Resto, NuevoIndice, Ceros).
+% Casos recursivos: Cuento los ceros.
 cerosDespues([0|Resto], 0, Ceros) :-
     cerosDespues(Resto, 0, CerosRestantes),
     Ceros is CerosRestantes + 1.
@@ -707,20 +769,16 @@ cerosDespues([_|Resto], 0, Ceros) :-
     cerosDespues(Resto, 0, Ceros).
 
 
-
+/*
+	conseguirColumna(+Grilla, +CantidadFilas , +CantidadColumnas, +NumeroFila, +NumeroColumna, -Columna)
+		Columna es la columna aislada en la grilla.
+*/
+% Caso Base: Llegué a la ultima fila.
 conseguirColumna(_, CantidadFilas ,_,NumeroFila, _, []):-
 	NumeroFila=:=CantidadFilas.
+% Caso Recursivo: No llegué a la última fila.
 conseguirColumna(Grilla, CantidadFilas ,CantidadColumnas,NumeroFila, NumeroColumna, [Valor|Columna]):-
 	NumeroFila=\=CantidadFilas,
 	valorEnCoordenada(Grilla, CantidadColumnas, [NumeroFila, NumeroColumna], Valor),
 	NumeroFila1 is NumeroFila+1,
 	conseguirColumna(Grilla,CantidadFilas,CantidadColumnas,NumeroFila1,NumeroColumna,Columna).
-
-
-
-limpiarLista([], []).
-limpiarLista([[]|T], Resultado) :-
-    limpiarLista(T, Resultado).
-limpiarLista([H|T], [H|Resultado]) :-
-    H \= [],
-    limpiarLista(T, Resultado).
